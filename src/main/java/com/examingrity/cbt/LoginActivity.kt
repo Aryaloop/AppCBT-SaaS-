@@ -2,7 +2,6 @@ package com.examingrity.cbt
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -25,73 +24,72 @@ class LoginActivity : AppCompatActivity() {
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
-        val tvRegisterLink = findViewById<TextView>(R.id.tvRegisterLink)
         val tvForgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
 
+        // Tautan ke Lupa Sandi
         tvForgotPassword.setOnClickListener {
             startActivity(Intent(this, ForgotPasswordActivity::class.java))
         }
 
+        // Tombol Login
         btnLogin.setOnClickListener {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Email dan Password wajib diisi", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Email dan Password wajib diisi.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Memanggil API menggunakan Coroutines (Berjalan di Background Thread)
             btnLogin.isEnabled = false
-            btnLogin.text = "Memproses..."
+            btnLogin.text = "Memverifikasi..."
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
-                    // 1. Ambil Public Key dari Server
-                    val pubKeyResponse = ApiClient.instance.getPublicKey()
-                    if (!pubKeyResponse.isSuccessful || pubKeyResponse.body() == null) {
-                        throw Exception("Gagal mendapatkan kunci keamanan dari server.")
-                    }
-                    val publicKey = pubKeyResponse.body()!!.publicKey
+                    // 1. Ambil Public Key
+                    val pkResponse = ApiClient.instance.getPublicKey()
+                    if (!pkResponse.isSuccessful) throw Exception("Gagal mendapatkan kunci keamanan.")
+                    val publicKeyStr = pkResponse.body()?.publicKey ?: throw Exception("Public key kosong.")
 
-                    // 2. Enkripsi Kata Sandi
-                    val encryptedPassword = RsaHelper.encrypt(password, publicKey)
-                        ?: throw Exception("Gagal mengenkripsi kata sandi secara lokal.")
+                    // 2. Enkripsi Password
+                    val encryptedPassword = RsaHelper.encrypt(password, publicKeyStr)
+                        ?: throw Exception("Gagal mengenkripsi kata sandi.")
 
-                    // 3. Kirim Request Login dengan kata sandi yang SUDAH TERENKRIPSI
-                    val request = LoginRequest(email = email, kata_sandi = encryptedPassword)
+                    // 3. Eksekusi Login
+                    val request = LoginRequest(email, encryptedPassword)
                     val response = ApiClient.instance.loginSiswa(request)
 
                     withContext(Dispatchers.Main) {
                         btnLogin.isEnabled = true
-                        btnLogin.text = "Masuk"
+                        btnLogin.text = "Masuk Ke Sistem"
 
+                        // Cari bagian ini di dalam lifecycleScope.launch:
                         if (response.isSuccessful) {
                             val user = response.body()?.user
                             if (user?.role == "siswa") {
                                 Toast.makeText(this@LoginActivity, "Login Sukses!", Toast.LENGTH_SHORT).show()
-                                // Lanjut ke Dashboard...
+
+                                // --- KODE BARU DIMULAI DISINI ---
+                                val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                                // Menghapus tumpukan halaman agar user tidak bisa kembali ke Login dengan tombol Back
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                startActivity(intent)
+                                finish()
+                                // --- KODE BARU SELESAI ---
+
                             } else {
                                 Toast.makeText(this@LoginActivity, "Aplikasi ini khusus Siswa.", Toast.LENGTH_LONG).show()
                             }
-                        } else {
-                            Toast.makeText(this@LoginActivity, "Email atau kata sandi salah.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         btnLogin.isEnabled = true
-                        btnLogin.text = "Masuk"
+                        btnLogin.text = "Masuk Ke Sistem"
                         Toast.makeText(this@LoginActivity, e.message ?: "Koneksi Gagal.", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
-        }
-
-        // Tautan ke Halaman Registrasi
-        tvRegisterLink.setOnClickListener {
-            // Kita akan buat activity ini setelah ini
-            startActivity(Intent(this, RegisterActivity::class.java))
         }
     }
 }

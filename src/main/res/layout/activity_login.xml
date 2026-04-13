@@ -1,89 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="32dp"
-    android:gravity="center"
-    android:background="#F8FAFC">
+    android:background="@color/white"
+    android:padding="24dp">
 
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@android:drawable/ic_secure"
-        android:layout_marginBottom="24dp"/>
-
-    <TextView
+    <LinearLayout
+        android:id="@+id/brandSection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Examingrity Student"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="#1E293B"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="32dp">
+
+        <View
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ic_launcher_foreground" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Examingrity"
+            android:textColor="@color/signature_blue"
+            android:textSize="24sp"
+            android:fontFamily="@font/calistoga" />
+    </LinearLayout>
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/tvWelcome"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Login untuk memulai ujian"
-        android:textColor="#64748B"
-        android:layout_marginBottom="32dp"/>
+        android:text="Selamat Datang"
+        android:textColor="@color/slate_900"
+        android:textSize="32sp"
+        android:fontFamily="@font/inter_bold"
+        android:layout_marginTop="48dp"
+        app:layout_constraintTop_toBottomOf="@id/brandSection" />
 
-    <EditText
-        android:id="@+id/etEmail"
+    <TextView
+        android:id="@+id/tvSubtitle"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
-        android:background="@android:drawable/edit_text"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp"/>
+        android:layout_height="wrap_content"
+        android:text="Masuk untuk mengakses ruang belajar Anda."
+        android:textColor="@color/slate_600"
+        android:textSize="16sp"
+        android:fontFamily="@font/inter_regular"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tvWelcome" />
 
-    <EditText
-        android:id="@+id/etPassword"
+    <LinearLayout
+        android:id="@+id/formSection"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Kata Sandi"
-        android:inputType="textPassword"
-        android:background="@android:drawable/edit_text"
-        android:padding="12dp"
-        android:layout_marginBottom="8dp"/> <TextView
-    android:id="@+id/tvForgotPassword"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Lupa kata sandi?"
-    android:textColor="#4F46E5"
-    android:textStyle="bold"
-    android:layout_gravity="end"
-    android:layout_marginBottom="24dp"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="40dp"
+        app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
+
+        <EditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:hint="Email Institusi"
+            android:background="@drawable/bg_input_field"
+            android:paddingHorizontal="20dp"
+            android:inputType="textEmailAddress"
+            android:fontFamily="@font/inter_regular"
+            android:layout_marginBottom="16dp"
+            android:textColor="@color/slate_900"
+            android:textColorHint="@color/slate_600" />
+
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:hint="Kata Sandi"
+            android:background="@drawable/bg_input_field"
+            android:paddingHorizontal="20dp"
+            android:inputType="textPassword"
+            android:fontFamily="@font/inter_regular"
+            android:textColor="@color/slate_900"
+            android:textColorHint="@color/slate_600"
+            />
+
+        <TextView
+            android:id="@+id/tvForgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lupa Kata Sandi?"
+            android:textColor="@color/signature_blue"
+            android:textSize="14sp"
+            android:fontFamily="@font/inter_semibold"
+            android:layout_gravity="end"
+            android:layout_marginTop="12dp" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:text="Masuk"
-        android:backgroundTint="#4F46E5"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="16dp"/>
+        android:layout_height="56dp"
+        android:text="Masuk Ke Sistem"
+        android:background="@drawable/btn_primary_gradient"
+        app:backgroundTint="@null"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:fontFamily="@font/inter_bold"
+        android:layout_marginTop="40dp"
+        app:layout_constraintTop_toBottomOf="@id/formSection" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Belum punya akun? "
-            android:textColor="#64748B"/>
-
-        <TextView
-            android:id="@+id/tvRegisterLink"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Daftar di sini"
-            android:textStyle="bold"
-            android:textColor="#4F46E5"/>
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
