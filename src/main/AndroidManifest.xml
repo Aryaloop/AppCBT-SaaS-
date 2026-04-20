@@ -27,7 +27,7 @@
 
         <activity
             android:name=".LoginActivity"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -61,7 +61,13 @@
         <activity
             android:name=".ForgotPasswordActivity"
             android:exported="false" />
+        <activity
+            android:name=".DashboardSiswaActivity"
+            android:exported="false" />
 
+        <activity
+            android:name=".ExamActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

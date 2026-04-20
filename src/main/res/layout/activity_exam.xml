@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8FAFC">
+
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/white"
+        android:padding="16dp"
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_secure"
+            app:tint="#0052FF" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CBT SECURE ENGINE"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#0F172A" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🟢 Terhubung • Mode Aman Aktif"
+                android:textSize="11sp"
+                android:textColor="#10B981"
+                android:textStyle="bold"/>
+            <TextView
+
+                android:id="@+id/tvViolation"
+
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+
+                android:text="Pelanggaran: 0"
+
+                android:textColor="#FCA5A5"
+
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvPelanggaran"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ Pelanggaran: 0"
+                android:textSize="12sp"
+                android:textColor="#DC2626"
+                android:textStyle="bold"
+                android:layout_marginTop="2dp"
+                android:visibility="gone"/> </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="30:00"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#DC2626"
+            android:background="#FEE2E2"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:layout_gravity="center_vertical" />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavLayout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/tvNomorSoal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SOAL 1 DARI 5"
+                android:textColor="#0052FF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:background="#EFF6FF"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/tvPertanyaan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Apa keunggulan utama implementasi Local Storage pada sistem ujian daring?"
+                android:textColor="#0F172A"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:lineSpacingExtra="6dp"
+                android:layout_marginBottom="24dp" />
+
+            <RadioGroup
+                android:id="@+id/rgOpsiJawaban"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/rbA"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="A. Kecepatan akses internet"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_input_field"
+                    android:buttonTint="#0052FF"
+                    android:textColor="#334155" />
+
+                <RadioButton
+                    android:id="@+id/rbB"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="B. Fault tolerance dan integritas data"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_input_field"
+                    android:buttonTint="#0052FF"
+                    android:textColor="#334155" />
+
+                <RadioButton
+                    android:id="@+id/rbC"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="C. Tampilan UI yang lebih menarik"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_input_field"
+                    android:buttonTint="#0052FF"
+                    android:textColor="#334155" />
+
+                <RadioButton
+                    android:id="@+id/rbD"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="D. Pengurangan biaya server"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_input_field"
+                    android:buttonTint="#0052FF"
+                    android:textColor="#334155" />
+            </RadioGroup>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomNavLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/white"
+        android:padding="16dp"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/btnSebelumnya"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="Sebelumnya"
+            android:textColor="#64748B"
+            android:backgroundTint="#F1F5F9"
+            app:cornerRadius="12dp"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnSelanjutnya"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="Selanjutnya"
+            android:textColor="@color/white"
+            android:backgroundTint="#0052FF"
+            app:cornerRadius="12dp"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

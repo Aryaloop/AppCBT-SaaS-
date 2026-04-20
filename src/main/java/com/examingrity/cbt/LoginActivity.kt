@@ -25,7 +25,7 @@ class LoginActivity : AppCompatActivity() {
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val tvForgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
-
+        val tvRegisterLink = findViewById<TextView>(R.id.tvRegisterLink) // Tambahkan ini
         // Tautan ke Lupa Sandi
         tvForgotPassword.setOnClickListener {
             startActivity(Intent(this, ForgotPasswordActivity::class.java))
@@ -66,19 +66,22 @@ class LoginActivity : AppCompatActivity() {
                         // Cari bagian ini di dalam lifecycleScope.launch:
                         if (response.isSuccessful) {
                             val user = response.body()?.user
-                            if (user?.role == "siswa") {
-                                Toast.makeText(this@LoginActivity, "Login Sukses!", Toast.LENGTH_SHORT).show()
+                            if (response.isSuccessful) {
+                                val user = response.body()?.user
+                                if (user?.role == "siswa") {
+                                    Toast.makeText(this@LoginActivity, "Login Sukses!", Toast.LENGTH_SHORT).show()
 
-                                // --- KODE BARU DIMULAI DISINI ---
-                                val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                                // Menghapus tumpukan halaman agar user tidak bisa kembali ke Login dengan tombol Back
-                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                startActivity(intent)
-                                finish()
-                                // --- KODE BARU SELESAI ---
+                                    // 1. Buat tujuan intent
+                                    val intent = Intent(this@LoginActivity, DashboardSiswaActivity::class.java)
+                                    // 2. Bersihkan riwayat halaman
+                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    // 3. EKSEKUSI PINDAH HALAMAN (Pastikan baris ini ada!)
+                                    startActivity(intent)
+                                    finish()
 
-                            } else {
-                                Toast.makeText(this@LoginActivity, "Aplikasi ini khusus Siswa.", Toast.LENGTH_LONG).show()
+                                } else {
+                                    Toast.makeText(this@LoginActivity, "Aplikasi ini khusus Siswa.", Toast.LENGTH_LONG).show()
+                                }
                             }
                         }
                     }
@@ -90,6 +93,10 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+
+        tvRegisterLink.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
     }
 }

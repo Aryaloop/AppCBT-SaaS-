@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8FAFC">
+
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottomNav">
+
+        <LinearLayout
+            android:id="@+id/layoutUjian"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center_vertical"
+            android:visibility="visible">
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="24dp"
+                android:src="@android:drawable/ic_lock_lock"
+                app:tint="#2563EB"
+                android:layout_gravity="center_horizontal"
+                />
+
+            <TextView
+                android:id="@+id/tvNamaSiswa"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Halo, Siswa"
+                android:textColor="#0F172A"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Silakan masukkan PIN/Token ujian yang diberikan oleh Pengajar untuk memulai."
+                android:textColor="#64748B"
+                android:textAlignment="center"
+                android:layout_marginBottom="32dp"/>
+
+            <EditText
+                android:id="@+id/etTokenUjian"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:hint="Masukkan PIN Ujian (Misal: X9K2P)"
+                android:textColor="#0F172A"
+                android:textColorHint="#94A3B8"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:maxLength="8"
+                android:textStyle="bold"
+                android:letterSpacing="0.2"
+                android:background="@drawable/bg_input_field"
+                android:layout_marginBottom="24dp"/>
+
+            <Button
+                android:id="@+id/btnMulaiUjian"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Masuk Ruang Ujian"
+                android:background="@drawable/btn_primary_gradient"
+                app:backgroundTint="@null"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutRiwayat"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingTop="32dp"
+            android:visibility="gone"> <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Riwayat Ujian"
+            android:textColor="#0F172A"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:paddingHorizontal="24dp"
+            android:layout_marginBottom="12dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="#FEF2F2"
+                android:padding="16dp"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="#FFFBEB">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="⚠️ CATATAN: Nilai di bawah adalah hasil otomatis sistem dan belum bersifat fiks sebelum diverifikasi Pengajar."
+                    android:textColor="#B45309"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRiwayat"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="24dp"
+                android:clipToPadding="false"/>
+        </LinearLayout>
+
+        <ScrollView
+            android:id="@+id/layoutProfile"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"> <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:paddingTop="32dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pengaturan Akun"
+                android:textColor="#0F172A"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="24dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_input_field"
+                android:padding="20dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Token Institusi Sekolah"
+                    android:textColor="#0F172A"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp"/>
+
+                <EditText
+                    android:id="@+id/etTokenSekolah"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:hint="Masukkan Token Sekolah"
+                    android:textColor="#0F172A"
+                    android:textColorHint="#94A3B8"
+                    android:background="#F1F5F9"
+                    android:paddingHorizontal="16dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/btnTautkanSekolah"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Tautkan Akun"
+                    android:backgroundTint="#0F172A"
+                    android:textColor="#FFFFFF"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_input_field"
+                android:padding="20dp"
+                android:layout_marginBottom="32dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ganti Kata Sandi"
+                    android:textColor="#0F172A"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
+
+                <EditText
+                    android:id="@+id/etPassLama"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:hint="Sandi Lama"
+                    android:inputType="textPassword"
+                    android:textColor="#0F172A"
+                    android:textColorHint="#94A3B8"
+                    android:background="#F1F5F9"
+                    android:paddingHorizontal="16dp"
+                    android:layout_marginBottom="8dp"/>
+
+                <EditText
+                    android:id="@+id/etPassBaru"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:hint="Sandi Baru"
+                    android:inputType="textPassword"
+                    android:textColor="#0F172A"
+                    android:textColorHint="#94A3B8"
+                    android:background="#F1F5F9"
+                    android:paddingHorizontal="16dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/btnGantiPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Simpan Sandi Baru"
+                    android:backgroundTint="#10B981"
+                    android:textColor="#FFFFFF"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnLogout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="KELUAR DARI APLIKASI"
+                android:textColor="#EF4444"
+                android:backgroundTint="#FEF2F2"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+        </ScrollView>
+
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@+id/bottomNav"
+        android:background="#E2E8F0" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#FFFFFF"
+        app:itemIconTint="@color/signature_blue"
+        app:itemTextColor="@color/signature_blue"
+        app:menu="@menu/bottom_nav_menu" />
+
+</RelativeLayout>

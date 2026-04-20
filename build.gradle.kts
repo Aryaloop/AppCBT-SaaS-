@@ -63,4 +63,10 @@ dependencies {
 
     // 4. Coroutines (Untuk menjalankan tugas di latar belakang (background) agar aplikasi tidak freeze)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Library yang membawa fitur 'viewModelScope' untuk ExamViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+
+    // Library yang membawa fitur 'repeatOnLifecycle' untuk ExamActivity
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 }

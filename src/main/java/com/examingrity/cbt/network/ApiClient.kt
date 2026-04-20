@@ -1,5 +1,8 @@
 package com.examingrity.cbt.network
 
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -8,15 +11,32 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-    // Sesuaikan URL ini dengan alamat DevTunnel atau Localhost Anda saat testing dari HP.
-    // Jika testing menggunakan Emulator Android Studio, gunakan "http://10.0.2.2:3000/api/"
+    // Sesuaikan dengan URL DevTunnels Anda
     private const val BASE_URL = "https://tqbn4sng-3000.asse.devtunnels.ms/api/"
-
-    // RAHASIA APLIKASI (Sama dengan APP_INTERNAL_SECRET di backend)
     private const val APP_SECRET = "Rahas1a_Sistem_Ujian_SaaS_2026!"
 
+    // KODE BARU: Penyimpanan Cookie Sementara di Memori Android (DIperbaiki)
+    private val cookieStore = HashMap<String, MutableList<Cookie>>()
+    private val cookieJar = object : CookieJar {
+        override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+            // Hanya proses jika server memang mengirimkan Cookie (Jangan timpa dengan list kosong!)
+            if (cookies.isNotEmpty()) {
+                val existingCookies = cookieStore[url.host] ?: mutableListOf()
+
+                // Tambahkan cookie baru, atau timpa cookie lama jika namanya sama (misal JWT diperbarui)
+                for (newCookie in cookies) {
+                    existingCookies.removeAll { it.name == newCookie.name }
+                    existingCookies.add(newCookie)
+                }
+                cookieStore[url.host] = existingCookies
+            }
+        }
+
+        override fun loadForRequest(url: HttpUrl): List<Cookie> {
+            return cookieStore[url.host] ?: ArrayList()
+        }
+    }
     val instance: ApiService by lazy {
-        // Interceptor untuk menyisipkan header keamanan di setiap request
         val headerInterceptor = Interceptor { chain ->
             val request = chain.request().newBuilder()
                 .addHeader("x-app-signature", APP_SECRET)
@@ -25,12 +45,12 @@ object ApiClient {
             chain.proceed(request)
         }
 
-        // Interceptor untuk melihat log error di Logcat Android Studio
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
 
         val client = OkHttpClient.Builder()
+            .cookieJar(cookieJar) // <--- KUNCI PERBAIKAN ERROR 401 ADA DI SINI
             .addInterceptor(headerInterceptor)
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
