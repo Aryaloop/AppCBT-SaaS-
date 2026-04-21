@@ -1,5 +1,4 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <color name="ic_launcher_background">#FFFFFF</color>
 
     <style name="Theme.Examingrity" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/signature_blue</item>

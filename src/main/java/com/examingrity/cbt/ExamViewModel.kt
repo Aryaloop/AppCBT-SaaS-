@@ -32,12 +32,23 @@ class ExamViewModel(private val repository: ExamRepository) : ViewModel() {
     private val _isTimeUrgent = MutableStateFlow(false)
     val isTimeUrgent: StateFlow<Boolean> = _isTimeUrgent
 
+    // 2. UBAH DEKLARASI participantId MENJADI SEPERTI INI (Fungsi Cerdas)
     var participantId: Int = -1
+        set(value) {
+            field = value
+            // Saat ID Peserta dimasukkan dari API, langsung tarik riwayat pelanggaran dari memori HP!
+            if (value != -1) {
+                val riwayatPelanggaran = sharedPrefs?.getInt("VIOLATIONS_$value", 0) ?: 0
+                _jumlahPelanggaran.value = riwayatPelanggaran
+            }
+        }
     private var isTimerRunning = false
 
 
     private var dbHelper: LocalDBHelper? = null
 
+    // 1. TAMBAHKAN VARIABEL INI
+    private var sharedPrefs: android.content.SharedPreferences? = null
     private val _isExamFinished = MutableStateFlow(false)
     val isExamFinished: StateFlow<Boolean> = _isExamFinished
 
@@ -147,20 +158,37 @@ class ExamViewModel(private val repository: ExamRepository) : ViewModel() {
         }
     }
 
-    fun catatPelanggaran(jenis: String, deskripsi: String) {
+    // 3. TAMBAHKAN PARAMETER isKecurangan = true
+    fun catatPelanggaran(jenis: String, deskripsi: String, isKecurangan: Boolean = true) {
         if (participantId == -1) return
-        _jumlahPelanggaran.value++
+
+        // HANYA TAMBAH ANGKA & SIMPAN KE MEMORI JIKA ITU BENAR-BENAR KECURANGAN (Bukan internet)
+        if (isKecurangan) {
+            _jumlahPelanggaran.value++
+            // Simpan permanen ke memori HP agar tidak hilang saat aplikasi Crash
+            sharedPrefs?.edit()?.putInt("VIOLATIONS_$participantId", _jumlahPelanggaran.value)?.apply()
+        }
+
         val waktu = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
         viewModelScope.launch(Dispatchers.IO) {
-            repository.kirimLog(participantId, LogRequest(jenis, deskripsi, waktu))
+            try {
+                repository.kirimLog(participantId, LogRequest(jenis, deskripsi, waktu))
+            } catch (e: Exception) {
+                android.util.Log.e("CBT_DEBUG", "Gagal kirim log CCTV (Siswa Offline)")
+            }
         }
     }
 
 
     // Inisialisasi SQLite dari Activity
+    // Inisialisasi SQLite dan SharedPreferences dari Activity
     fun initLocalDb(context: android.content.Context) {
         if (dbHelper == null) {
             dbHelper = LocalDBHelper(context)
+        }
+        if (sharedPrefs == null) {
+            sharedPrefs = context.getSharedPreferences("CBT_PREFS", android.content.Context.MODE_PRIVATE)
         }
     }
 }

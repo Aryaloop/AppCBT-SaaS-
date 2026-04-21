@@ -24,8 +24,8 @@ import kotlinx.coroutines.withContext
 
 class DashboardSiswaActivity : AppCompatActivity() {
 
-    private lateinit var layoutUjian: LinearLayout
-    private lateinit var layoutRiwayat: LinearLayout
+    private lateinit var layoutUjian: View
+    private lateinit var layoutRiwayat: View
     private lateinit var layoutProfile: View
     private lateinit var rvRiwayat: RecyclerView
 

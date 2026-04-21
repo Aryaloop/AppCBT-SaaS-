@@ -45,6 +45,9 @@ class ExamActivity : AppCompatActivity() {
     private lateinit var tvPertanyaan: TextView
     private lateinit var tvPelanggaran: TextView
     private lateinit var rgOpsiJawaban: RadioGroup
+
+    // Tambahkan variabel ini untuk mencegah CCTV salah paham
+    private var isMembukaPanelJaringan = false
     private lateinit var rbA: RadioButton
     private lateinit var rbB: RadioButton
     private lateinit var rbC: RadioButton
@@ -53,6 +56,8 @@ class ExamActivity : AppCompatActivity() {
     private lateinit var btnSebelumnya: Button
 
     private val TAG = "ExamActivity"
+
+    private lateinit var tvViolation: TextView // <--- TAMBAHKAN INI
 
     // ==========================================
     // 2. DEKLARASI SENSOR (JARINGAN & BATERAI)
@@ -64,27 +69,23 @@ class ExamActivity : AppCompatActivity() {
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onLost(network: Network) {
             super.onLost(network)
-            if (!isNetworkLost) {
-                isNetworkLost = true
-                runOnUiThread {
-                    Toast.makeText(this@ExamActivity, "Koneksi Terputus! Mengaktifkan Mode Offline.", Toast.LENGTH_LONG).show()
-                }
-                if (viewModel.participantId != -1) {
-                    viewModel.catatPelanggaran("CONN_LOST", "Koneksi internet terputus (Offline mode aktif).")
-                }
+            runOnUiThread {
+                Toast.makeText(this@ExamActivity, "Koneksi Terputus!", Toast.LENGTH_SHORT).show()
+            }
+            // isKecurangan = false -> Lapor ke guru, tapi jangan hukum siswanya!
+            if (viewModel.participantId != -1) {
+                viewModel.catatPelanggaran("LOST_CONNECTION", "Koneksi terputus.", isKecurangan = false)
             }
         }
 
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
-            if (isNetworkLost) {
-                isNetworkLost = false
-                runOnUiThread {
-                    Toast.makeText(this@ExamActivity, "Koneksi Pulih! Menyinkronkan jawaban...", Toast.LENGTH_SHORT).show()
-                }
-                if (viewModel.participantId != -1) {
-                    viewModel.catatPelanggaran("CONN_RESTORED", "Koneksi pulih. Sinkronisasi jawaban dilakukan.")
-                }
+            runOnUiThread {
+                Toast.makeText(this@ExamActivity, "Koneksi Dipulihkan", Toast.LENGTH_SHORT).show()
+            }
+            // isKecurangan = false -> Lapor ke guru, tapi jangan hukum siswanya!
+            if (viewModel.participantId != -1) {
+                viewModel.catatPelanggaran("RESTORED_CONNECTION", "Koneksi internet kembali normal.", isKecurangan = false)
             }
         }
     }
@@ -220,7 +221,14 @@ class ExamActivity : AppCompatActivity() {
                 // Pantau Jumlah Pelanggaran
                 launch {
                     viewModel.jumlahPelanggaran.collectLatest { count ->
+                        // UPDATE TEKS tvViolation YANG SELALU TAMPIL
+                        tvViolation.text = "Pelanggaran: $count"
+
+                        // JIKA INGIN MENGUBAH WARNANYA MENJADI MERAH SAAT ADA PELANGGARAN:
                         if (count > 0) {
+                            tvViolation.setTextColor(android.graphics.Color.parseColor("#DC2626"))
+
+                            // (Opsional) Tetap tampilkan tvPelanggaran yang icon warning
                             tvPelanggaran.visibility = View.VISIBLE
                             tvPelanggaran.text = "⚠️ Pelanggaran: $count"
                         }
@@ -247,6 +255,7 @@ class ExamActivity : AppCompatActivity() {
         tvNomorSoal = findViewById(R.id.tvNomorSoal)
         tvPertanyaan = findViewById(R.id.tvPertanyaan)
         tvPelanggaran = findViewById(R.id.tvPelanggaran)
+        tvViolation = findViewById(R.id.tvViolation)
 
         rgOpsiJawaban = findViewById(R.id.rgOpsiJawaban)
         rbA = findViewById(R.id.rbA)
@@ -397,14 +406,40 @@ class ExamActivity : AppCompatActivity() {
                     keluarModeAman()
                 }
             } catch (e: Exception) {
+                // ==========================================
+                // PERBAIKAN: JIKA GAGAL KARENA TIDAK ADA INTERNET
+                // ==========================================
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@ExamActivity, "Kesalahan jaringan. Ujian diakhiri.", Toast.LENGTH_LONG).show()
-                    keluarModeAman()
+                    tampilkanDialogInternetMati()
+                    btnSelanjutnya.isEnabled = true
+                    btnSelanjutnya.text = "Kumpulkan Ulang"
+                    btnSebelumnya.isEnabled = true
                 }
             }
         }
     }
 
+    private fun tampilkanDialogInternetMati() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Koneksi Internet Terputus 📡")
+            .setMessage("Jangan panik! Jawaban Anda aman di penyimpanan HP. Namun, kami butuh internet untuk mengirimkannya ke server guru.\n\nSilakan minta Hotspot ke teman atau nyalakan Wi-Fi Anda sekarang.")
+            .setCancelable(false)
+            .setPositiveButton("Buka Pengaturan Wi-Fi") { _, _ ->
+                // Beritahu CCTV agar merem sebentar
+                isMembukaPanelJaringan = true
+
+                // Panggil pop-up Wi-Fi bawaan Android
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    val intent = Intent(android.provider.Settings.Panel.ACTION_INTERNET_CONNECTIVITY)
+                    startActivity(intent)
+                } else {
+                    val intent = Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
+                    startActivity(intent)
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
     private fun tampilkanErrorFatal(pesan: String) {
         tvPertanyaan.text = pesan
         tvPertanyaan.setTextColor(android.graphics.Color.RED)
@@ -425,7 +460,14 @@ class ExamActivity : AppCompatActivity() {
     // Tangkap jika siswa mencoba membelah layar (Split screen) atau keluar aplikasi
     override fun onPause() {
         super.onPause()
+
+        if (isMembukaPanelJaringan) {
+            isMembukaPanelJaringan = false
+            return
+        }
+
         if (viewModel.participantId != -1) {
+            // INI KECURANGAN ASLI! Teks merah di layar akan bertambah dan tersimpan permanen
             viewModel.catatPelanggaran("APP_SWITCH", "Siswa meminimalkan aplikasi atau membuka notifikasi/split screen.")
             Toast.makeText(this, "Aktivitas mencurigakan terekam CCTV Sistem!", Toast.LENGTH_LONG).show()
         }
