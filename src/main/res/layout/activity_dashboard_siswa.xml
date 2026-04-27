@@ -48,7 +48,7 @@
                 android:layout_marginBottom="32dp"/>
 
             <EditText
-                android:id="@+id/etTokenUjian"
+                android:id="@+id/etPinUjian"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:hint="Masukkan PIN Ujian (Misal: X9K2P)"
@@ -120,119 +120,136 @@
             android:id="@+id/layoutProfile"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone"> <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:paddingTop="32dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Pengaturan Akun"
-                android:textColor="#0F172A"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="24dp"/>
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@drawable/bg_input_field"
-                android:padding="20dp"
-                android:layout_marginBottom="16dp">
+                android:padding="24dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Token Institusi Sekolah"
-                    android:textColor="#0F172A"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp"/>
+                    android:text="Profil Pengguna"
+                    android:textColor="@color/slate_900"
+                    android:textSize="24sp"
+                    android:fontFamily="@font/inter_bold"
+                    android:layout_marginBottom="16dp"/>
 
-                <EditText
-                    android:id="@+id/etTokenSekolah"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:hint="Masukkan Token Sekolah"
-                    android:textColor="#0F172A"
-                    android:textColorHint="#94A3B8"
-                    android:background="#F1F5F9"
-                    android:paddingHorizontal="16dp"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_input_field"
+                    android:padding="20dp"
+                    android:layout_marginBottom="24dp">
 
-                <Button
-                    android:id="@+id/btnTautkanSekolah"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="Tautkan Akun"
-                    android:backgroundTint="#0F172A"
-                    android:textColor="#FFFFFF"/>
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/tvProfilNama"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Memuat Nama..."
+                        android:textColor="@color/slate_900"
+                        android:textSize="18sp"
+                        android:fontFamily="@font/inter_bold" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/bg_input_field"
-                android:padding="20dp"
-                android:layout_marginBottom="32dp">
+                    <TextView
+                        android:id="@+id/tvProfilEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="memuat.email@..."
+                        android:textColor="@color/slate_600"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter_regular"
+                        android:layout_marginTop="4dp"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E2E8F0"
+                        android:layout_marginVertical="12dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Status Institusi"
+                        android:textColor="@color/slate_500"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_bold"
+                        android:textAllCaps="true" />
+
+                    <TextView
+                        android:id="@+id/tvProfilSekolah"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Mengecek Status..."
+                        android:textColor="#0052FF"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter_bold"
+                        android:layout_marginTop="2dp"/>
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ganti Kata Sandi"
-                    android:textColor="#0F172A"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="12dp"/>
-
-                <EditText
-                    android:id="@+id/etPassLama"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:hint="Sandi Lama"
-                    android:inputType="textPassword"
-                    android:textColor="#0F172A"
-                    android:textColorHint="#94A3B8"
-                    android:background="#F1F5F9"
-                    android:paddingHorizontal="16dp"
+                    android:text="Tautkan ke Sekolah"
+                    android:textColor="@color/slate_900"
+                    android:textSize="16sp"
+                    android:fontFamily="@font/inter_bold"
                     android:layout_marginBottom="8dp"/>
 
-                <EditText
-                    android:id="@+id/etPassBaru"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:hint="Sandi Baru"
-                    android:inputType="textPassword"
-                    android:textColor="#0F172A"
-                    android:textColorHint="#94A3B8"
-                    android:background="#F1F5F9"
-                    android:paddingHorizontal="16dp"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="24dp">
+
+                    <EditText
+                        android:id="@+id/etTokenSekolah"
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_weight="1"
+                        android:hint="Token Sekolah"
+                        android:background="@drawable/bg_input_field"
+                        android:paddingHorizontal="16dp"
+                        android:inputType="textCapCharacters"
+                        android:fontFamily="@font/inter_regular"
+                        android:textColor="@color/slate_900"
+                        android:textColorHint="@color/slate_600"
+                        android:layout_marginEnd="8dp"/>
+
+                    <Button
+                        android:id="@+id/btnTautkanSekolah"
+                        android:layout_width="wrap_content"
+                        android:layout_height="56dp"
+                        android:text="TAUTKAN"
+                        android:fontFamily="@font/inter_bold"
+                        android:backgroundTint="#0052FF"
+                        android:textColor="#FFFFFF"/>
+                </LinearLayout>
 
                 <Button
                     android:id="@+id/btnGantiPassword"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="Simpan Sandi Baru"
-                    android:backgroundTint="#10B981"
-                    android:textColor="#FFFFFF"/>
+                    android:layout_height="56dp"
+                    android:text="Ubah Kata Sandi"
+                    android:fontFamily="@font/inter_bold"
+                    android:backgroundTint="@color/slate_900"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="16dp" />
+
+                <Button
+                    android:id="@+id/btnLogout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="KELUAR DARI APLIKASI"
+                    android:textColor="#EF4444"
+                    android:fontFamily="@font/inter_bold"
+                    android:backgroundTint="#FEF2F2" />
+
             </LinearLayout>
-
-            <Button
-                android:id="@+id/btnLogout"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="KELUAR DARI APLIKASI"
-                android:textColor="#EF4444"
-                android:backgroundTint="#FEF2F2"
-                android:textStyle="bold" />
-
-        </LinearLayout>
         </ScrollView>
-
     </FrameLayout>
 
     <View

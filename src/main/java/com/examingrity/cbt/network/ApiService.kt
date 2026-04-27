@@ -9,6 +9,7 @@ import retrofit2.http.PUT
 // ==========================================
 // MODEL DATA (DATA CLASSES)
 // ==========================================
+
 data class LoginRequest(val email: String, val kata_sandi: String)
 
 data class RegisterRequest(
@@ -71,9 +72,17 @@ data class RiwayatItem(
 )
 
 // --- MODEL DATA PROFIL ---
-data class TautkanSekolahRequest(val token_sekolah: String)
-data class UpdateProfileRequest(val password_lama: String, val password_baru: String)
-data class GeneralResponse(val message: String)
+data class TautkanSekolahRequest(
+    val token_sekolah: String
+)
+data class UpdateProfileRequest(
+    val nama_lengkap: String? = null, // Pakai tanda "?" agar Kotlin mengizinkan isi null
+    val password_lama: String,
+    val password_baru: String
+)
+data class GeneralResponse(
+    val message: String
+)
 
 // Model untuk mengirim jawaban
 data class SubmitUjianRequest(val answers: List<AnswerItem>)
@@ -81,6 +90,12 @@ data class AnswerItem(val question_id: Int, val jawaban: String)
 data class SubmitResponse(val message: String, val nilai_akhir: String, val total_benar: Int)
 
 data class AutoSaveRequest(val question_id: Int, val jawaban_siswa: String)
+
+data class ProfilResponse(
+    val nama_lengkap: String,
+    val email: String,
+    val sekolah: String
+)
 // ==========================================
 // DAFTAR ENDPOINT API (INTERFACE)
 // ==========================================
@@ -140,4 +155,7 @@ interface ApiService {
         @Path("participant_id") participantId: Int,
         @Body request: AutoSaveRequest
     ): retrofit2.Response<GeneralResponse> // GeneralResponse bisa disesuaikan jika kamu pakai nama lain
+
+    @GET("siswa/profile")
+    suspend fun getProfileSiswa(): retrofit2.Response<ProfilResponse>
 }
