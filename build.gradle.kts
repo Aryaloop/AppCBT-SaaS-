@@ -69,4 +69,8 @@ dependencies {
 
     // Library yang membawa fitur 'repeatOnLifecycle' untuk ExamActivity
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    // Glide untuk memuat gambar dari URL URL Supabase
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+// PhotoView untuk fitur cubit & zoom
+    implementation("com.github.chrisbanes:PhotoView:2.3.0")
 }

@@ -6,6 +6,9 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.PUT
+import okhttp3.MultipartBody
+import retrofit2.http.Part
+import retrofit2.http.Multipart
 // ==========================================
 // MODEL DATA (DATA CLASSES)
 // ==========================================
@@ -56,8 +59,9 @@ data class SoalItem(
     val id: Int,
     val tipe_soal: String,
     val isi_soal: String,
-    // Gson akan otomatis mengubah JSON Object dari database menjadi Map
-    val pilihan_ganda: Map<String, String>?
+    val pilihan_ganda: Map<String, String>?,
+    // 🚀 TAMBAHKAN INI:
+    val file_gambar: String?
 )
 
 // --- MODEL DATA RIWAYAT ---
@@ -72,13 +76,16 @@ data class RiwayatItem(
 )
 
 // --- MODEL DATA PROFIL ---
+// --- MODEL DATA PROFIL ---
 data class TautkanSekolahRequest(
-    val token_sekolah: String
+    val token_sekolah: String,
+    val nisn: String
 )
 data class UpdateProfileRequest(
-    val nama_lengkap: String? = null, // Pakai tanda "?" agar Kotlin mengizinkan isi null
-    val password_lama: String,
-    val password_baru: String
+    val nama_lengkap: String? = null,
+    val password_lama: String? = null, // Set to nullable because they might only update NISN
+    val password_baru: String? = null,
+    val nisn: String? = null // NEW: Add NISN field
 )
 data class GeneralResponse(
     val message: String
@@ -86,7 +93,7 @@ data class GeneralResponse(
 
 // Model untuk mengirim jawaban
 data class SubmitUjianRequest(val answers: List<AnswerItem>)
-data class AnswerItem(val question_id: Int, val jawaban: String)
+data class AnswerItem(val question_id: Int, val jawaban: String, val file_jawaban: String? = null)
 data class SubmitResponse(val message: String, val nilai_akhir: String, val total_benar: Int)
 
 data class AutoSaveRequest(val question_id: Int, val jawaban_siswa: String)
@@ -94,7 +101,8 @@ data class AutoSaveRequest(val question_id: Int, val jawaban_siswa: String)
 data class ProfilResponse(
     val nama_lengkap: String,
     val email: String,
-    val sekolah: String
+    val sekolah: String,
+    val nisn: String? // NEW: Add NISN field
 )
 // ==========================================
 // DAFTAR ENDPOINT API (INTERFACE)
@@ -158,4 +166,12 @@ interface ApiService {
 
     @GET("siswa/profile")
     suspend fun getProfileSiswa(): retrofit2.Response<ProfilResponse>
+
+    data class UploadResponse(val url: String)
+    @Multipart
+    @POST("siswa/ujian/{participant_id}/upload")
+    suspend fun uploadFotoJawaban(
+        @Path("participant_id") participantId: Int,
+        @Part foto_jawaban: MultipartBody.Part
+    ): retrofit2.Response<UploadResponse>
 }

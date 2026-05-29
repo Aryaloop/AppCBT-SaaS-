@@ -19,6 +19,7 @@
             android:padding="24dp"
             android:gravity="center_vertical"
             android:visibility="visible">
+            
             <ImageView
                 android:layout_width="100dp"
                 android:layout_height="100dp"
@@ -164,12 +165,35 @@
                         android:fontFamily="@font/inter_regular"
                         android:layout_marginTop="4dp"/>
 
+                    <!-- NEW: NISN Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="NISN"
+                        android:textColor="@color/slate_500"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_bold"
+                        android:textAllCaps="true"
+                        android:layout_marginTop="12dp"/>
+
+                    <TextView
+                        android:id="@+id/tvProfilNisn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Memuat NISN..."
+                        android:textColor="@color/slate_900"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter_bold"
+                        android:layout_marginTop="2dp"/>
+                    <!-- End of NISN Section -->
+
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="#E2E8F0"
                         android:layout_marginVertical="12dp"/>
 
+                    <!-- ... Status Institusi remains ... -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -190,6 +214,16 @@
                         android:layout_marginTop="2dp"/>
                 </LinearLayout>
 
+                <!-- NEW: Edit Profile Button -->
+                <Button
+                    android:id="@+id/btnEditProfil"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Edit Profil"
+                    android:fontFamily="@font/inter_bold"
+                    android:backgroundTint="#0F172A"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="8dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -202,28 +236,60 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="24dp">
+                    android:orientation="vertical"
+                    android:background="#EFF6FF"
+                    android:padding="20dp"
+                    android:layout_marginBottom="24dp"
+                    android:backgroundTint="#EFF6FF">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tautkan ke Sekolah"
+                        android:textColor="#1E3A8A"
+                        android:textSize="18sp"
+                        android:fontFamily="@font/inter_bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Masukkan NISN dan Token Sekolah yang diberikan oleh Admin TU untuk masuk ke kelas."
+                        android:textColor="#3B82F6"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="16dp"/>
+
+                    <EditText
+                        android:id="@+id/etNisnTautkan"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:hint="NISN Anda"
+                        android:background="@drawable/bg_input_field"
+                        android:paddingHorizontal="16dp"
+                        android:inputType="number"
+                        android:fontFamily="@font/inter_regular"
+                        android:textColor="@color/slate_900"
+                        android:textColorHint="@color/slate_500"
+                        android:layout_marginBottom="12dp"/>
 
                     <EditText
                         android:id="@+id/etTokenSekolah"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:layout_weight="1"
                         android:hint="Token Sekolah"
                         android:background="@drawable/bg_input_field"
                         android:paddingHorizontal="16dp"
                         android:inputType="textCapCharacters"
                         android:fontFamily="@font/inter_regular"
                         android:textColor="@color/slate_900"
-                        android:textColorHint="@color/slate_600"
-                        android:layout_marginEnd="8dp"/>
+                        android:textColorHint="@color/slate_500"
+                        android:layout_marginBottom="16dp"/>
 
                     <Button
                         android:id="@+id/btnTautkanSekolah"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:text="TAUTKAN"
+                        android:text="VALIDASI &amp; TAUTKAN"
                         android:fontFamily="@font/inter_bold"
                         android:backgroundTint="#0052FF"
                         android:textColor="#FFFFFF"/>

@@ -1,165 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
-    android:padding="24dp">
+    android:fillViewport="true"
+    android:background="@color/white">
 
-    <LinearLayout
-        android:id="@+id/brandSection"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="32dp">
+        android:padding="24dp">
 
-        <View
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="@drawable/ic_launcher_foreground" />
-        <TextView
+        <LinearLayout
+            android:id="@+id/brandSection"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="eLearn"
-            android:textColor="@color/signature_blue"
-            android:textSize="20sp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="32dp">
+
+            <View
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/ic_launcher_foreground" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="eLearn"
+                android:textColor="@color/signature_blue"
+                android:textSize="20sp"
+                android:fontFamily="@font/calistoga"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Buat Akun Baru"
+            android:textColor="@color/slate_900"
+            android:textSize="32sp"
             android:fontFamily="@font/calistoga"
-            android:layout_marginStart="8dp"/>
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Buat Akun Siswa"
-        android:textColor="@color/slate_900"
-        android:textSize="32sp"
-        android:fontFamily="@font/inter_bold"
-        android:layout_marginTop="40dp"
-        app:layout_constraintTop_toBottomOf="@id/brandSection" />
-
-    <TextView
-        android:id="@+id/tvSubtitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Lengkapi identitas Anda untuk mengikuti ujian."
-        android:textColor="@color/slate_600"
-        android:textSize="16sp"
-        android:fontFamily="@font/inter_regular"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
-
-    <LinearLayout
-        android:id="@+id/formSection"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="32dp"
-        app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/brandSection" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nama Lengkap"
-            android:textColor="@color/slate_900"
-            android:textSize="14sp"
-            android:fontFamily="@font/inter_bold"
-            android:layout_marginBottom="8dp"
-            android:layout_marginStart="4dp" />
-        <EditText
-            android:id="@+id/etNamaLengkap"
+            android:id="@+id/tvSubtitle"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:hint="Sesuai Ijazah"
-            android:textColorHint="@color/slate_600"
-            android:textColor="@color/slate_900"
-            android:background="@drawable/bg_input_field"
-            android:paddingHorizontal="20dp"
-            android:inputType="textPersonName"
+            android:layout_height="wrap_content"
+            android:text="Bergabunglah untuk mengikuti ujian dengan aman dan nyaman."
+            android:textColor="@color/slate_500"
+            android:textSize="14sp"
             android:fontFamily="@font/inter_regular"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/formSection"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Email Aktif"
-            android:textColor="@color/slate_900"
-            android:textSize="14sp"
-            android:fontFamily="@font/inter_bold"
-            android:layout_marginBottom="8dp"
-            android:layout_marginStart="4dp" />
-        <EditText
-            android:id="@+id/etEmail"
+            android:orientation="vertical"
+            android:layout_marginTop="32dp"
+            app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nama Lengkap"
+                android:textColor="@color/slate_900"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_bold"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="4dp" />
+            <EditText
+                android:id="@+id/etNamaLengkap"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:hint="Sesuai kartu pelajar"
+                android:textColorHint="@color/slate_600"
+                android:textColor="@color/slate_900"
+                android:background="@drawable/bg_input_field"
+                android:paddingHorizontal="20dp"
+                android:inputType="textPersonName"
+                android:fontFamily="@font/inter_regular"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Alamat Email"
+                android:textColor="@color/slate_900"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_bold"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="4dp" />
+            <EditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:hint="Email aktif Anda"
+                android:textColorHint="@color/slate_600"
+                android:textColor="@color/slate_900"
+                android:background="@drawable/bg_input_field"
+                android:paddingHorizontal="20dp"
+                android:inputType="textEmailAddress"
+                android:fontFamily="@font/inter_regular"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kata Sandi"
+                android:textColor="@color/slate_900"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_bold"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="4dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:passwordToggleEnabled="true">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:hint="Minimal 6 karakter"
+                    android:inputType="textPassword"
+                    android:background="@drawable/bg_input_field" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ulangi Kata Sandi"
+                android:textColor="@color/slate_900"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_bold"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="4dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:passwordToggleEnabled="true">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etConfirmPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:hint="Minimal 6 karakter"
+                    android:inputType="textPassword"
+                    android:background="@drawable/bg_input_field" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:hint="contoh@email.com"
-            android:textColorHint="@color/slate_600"
-            android:textColor="@color/slate_900"
-            android:background="@drawable/bg_input_field"
-            android:paddingHorizontal="20dp"
-            android:inputType="textEmailAddress"
-            android:fontFamily="@font/inter_regular"
-            android:layout_marginBottom="16dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Kata Sandi"
-            android:textColor="@color/slate_900"
-            android:textSize="14sp"
+            android:text="Daftar Sekarang"
+            android:background="@drawable/btn_primary_gradient"
+            app:backgroundTint="@null"
+            android:textAllCaps="false"
+            android:textSize="16sp"
             android:fontFamily="@font/inter_bold"
-            android:layout_marginBottom="8dp"
-            android:layout_marginStart="4dp" />
-        <EditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:hint="Minimal 6 Karakter"
-            android:textColorHint="@color/slate_600"
-            android:textColor="@color/slate_900"
-            android:background="@drawable/bg_input_field"
-            android:paddingHorizontal="20dp"
-            android:inputType="textPassword"
-            android:fontFamily="@font/inter_regular"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginTop="40dp"
+            app:layout_constraintTop_toBottomOf="@id/formSection"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="24dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Ulangi Kata Sandi"
-            android:textColor="@color/slate_900"
-            android:textSize="14sp"
-            android:fontFamily="@font/inter_bold"
-            android:layout_marginBottom="8dp"
-            android:layout_marginStart="4dp" />
-        <EditText
-            android:id="@+id/etConfirmPassword"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:hint="Masukkan ulang sandi"
-            android:textColorHint="@color/slate_600"
-            android:textColor="@color/slate_900"
-            android:background="@drawable/bg_input_field"
-            android:paddingHorizontal="20dp"
-            android:inputType="textPassword"
-            android:fontFamily="@font/inter_regular" />
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/btnRegister"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Daftar Sekarang"
-        android:background="@drawable/btn_primary_gradient"
-        app:backgroundTint="@null"
-        android:textAllCaps="false"
-        android:textSize="16sp"
-        android:fontFamily="@font/inter_bold"
-        android:layout_marginTop="40dp"
-        app:layout_constraintTop_toBottomOf="@id/formSection" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

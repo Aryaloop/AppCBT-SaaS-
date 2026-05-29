@@ -2,13 +2,17 @@ package com.examingrity.cbt.utils
 
 import android.util.Base64
 import java.security.KeyFactory
+import java.security.spec.MGF1ParameterSpec
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
+import javax.crypto.spec.OAEPParameterSpec
+import javax.crypto.spec.PSource
 
 object RsaHelper {
     /**
      * Fungsi untuk mengenkripsi teks menggunakan Kunci Publik RSA
-     * @param plainText Kata sandi asli (Plain text)
+     * dengan Padding OAEP SHA-256 (Sesuai dengan Backend Node.js)
+     * * @param plainText Kata sandi asli (Plain text)
      * @param publicKeyString Kunci publik dari server (Format PEM)
      * @return String terenkripsi dalam format Base64, atau null jika gagal
      */
@@ -28,11 +32,20 @@ object RsaHelper {
             val keyFactory = KeyFactory.getInstance("RSA")
             val publicKey = keyFactory.generatePublic(spec)
 
-            // 4. Inisialisasi Cipher untuk Enkripsi (Gunakan padding yang sama dengan backend)
-            val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
-            cipher.init(Cipher.ENCRYPT_MODE, publicKey)
+            // 4. Inisialisasi Cipher dengan algoritma OAEP
+            val cipher = Cipher.getInstance("RSA/ECB/OAEPPadding")
 
-            // 5. Enkripsi dan konversi hasilnya ke Base64 (NO_WRAP agar tidak ada enter ekstra)
+            // 5. Konfigurasi Parameter OAEP agar persis sama dengan settingan Node.js (oaepHash: "sha256")
+            val oaepParams = OAEPParameterSpec(
+                "SHA-256",
+                "MGF1",
+                MGF1ParameterSpec.SHA256, // Node.js secara default menggunakan SHA-256 untuk MGF1 juga
+                PSource.PSpecified.DEFAULT
+            )
+
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey, oaepParams)
+
+            // 6. Enkripsi dan konversi hasilnya ke Base64 (NO_WRAP agar tidak ada enter ekstra)
             val encryptedBytes = cipher.doFinal(plainText.toByteArray(Charsets.UTF_8))
             Base64.encodeToString(encryptedBytes, Base64.NO_WRAP)
 

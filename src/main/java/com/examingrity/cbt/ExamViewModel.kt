@@ -22,6 +22,8 @@ class ExamViewModel(private val repository: ExamRepository) : ViewModel() {
 
     // State: Jawaban & Pelanggaran
     val jawabanSiswa = mutableMapOf<Int, String>()
+
+    val fotoSiswa = mutableMapOf<Int, String>() // Menampung Map<SoalID, PathFotoLokal>
     private val _jumlahPelanggaran = MutableStateFlow(0)
     val jumlahPelanggaran: StateFlow<Int> = _jumlahPelanggaran
 
@@ -52,48 +54,59 @@ class ExamViewModel(private val repository: ExamRepository) : ViewModel() {
     private val _isExamFinished = MutableStateFlow(false)
     val isExamFinished: StateFlow<Boolean> = _isExamFinished
 
-    // Fungsi: Ambil Data
+// Fungsi: Ambil Data Ujian
     fun loadExamData(token: String, onError: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                android.util.Log.d("CBT_DEBUG", "1. Mencoba mulai sesi ujian...")
                 val sesiRes = repository.mulaiSesi(token)
 
                 if (sesiRes.isSuccessful) {
                     val data = sesiRes.body()?.data!!
                     participantId = data.participant_id
-                    android.util.Log.d("CBT_DEBUG", "2. Sesi berhasil. Participant ID: $participantId. Mencoba narik soal...")
 
                     val soalRes = repository.getSoal(participantId)
 
                     if (soalRes.isSuccessful) {
                         val daftarSoal = soalRes.body()?.data ?: emptyList()
-                        android.util.Log.d("CBT_DEBUG", "3. SUKSES! Berhasil menarik ${daftarSoal.size} soal.")
 
                         if (daftarSoal.isEmpty()) {
                             withContext(Dispatchers.Main) { onError("Daftar soal dari server kosong.") }
                         } else {
-                            // 🛡️ RECOVERY: Tarik kembali jawaban dari SQLite!
-                            val savedAnswers = dbHelper?.getSemuaJawaban(participantId) ?: emptyMap()
-                            jawabanSiswa.putAll(savedAnswers)
+                            // 🛡️ RECOVERY SQLite di jalur Background (Aman)
+                            val savedAnswers = getLocalDb()?.getSemuaJawabanTeks(participantId) ?: emptyMap()
+                            val savedPhotos = getLocalDb()?.getSemuaPathFoto(participantId) ?: emptyMap()
 
-                            _soalList.value = daftarSoal
-                            startTimer(data.sisa_waktu_menit * 60)
+                            jawabanSiswa.putAll(savedAnswers)
+                            fotoSiswa.putAll(savedPhotos)
+
+                            // 🚀 PERBAIKAN RACE CONDITION:
+                            // Lempar UI Update & Timer WAJIB ke Main Thread
+                            withContext(Dispatchers.Main) {
+                                _soalList.value = daftarSoal
+                                // Ini tidak akan crash lagi karena berjalan di Main Thread
+                                startTimer(data.sisa_waktu_menit * 60)
+                            }
                         }
                     } else {
+                        // ❌ Gagal Tarik Soal
                         val errSoal = soalRes.errorBody()?.string()
-                        android.util.Log.e("CBT_DEBUG", "3. GAGAL TARIK SOAL: $errSoal")
-                        withContext(Dispatchers.Main) { onError("Gagal mengambil soal dari server (Code: ${soalRes.code()})") }
+                        val pesanSpesifik = try {
+                            org.json.JSONObject(errSoal!!).getString("message")
+                        } catch (e: Exception) { "Gagal menarik daftar soal dari server." }
+                        withContext(Dispatchers.Main) { onError(pesanSpesifik) }
                     }
                 } else {
+                    // ❌ Gagal Mulai Sesi
                     val errSesi = sesiRes.errorBody()?.string()
-                    android.util.Log.e("CBT_DEBUG", "2. GAGAL SESI: $errSesi")
-                    withContext(Dispatchers.Main) { onError("Sesi ditolak. PIN salah atau ujian belum dimulai.") }
+                    val pesanSpesifik = try {
+                        org.json.JSONObject(errSesi!!).getString("message")
+                    } catch (e: Exception) { "Sesi ditolak. PIN salah atau ujian belum dimulai." }
+                    withContext(Dispatchers.Main) { onError(pesanSpesifik) }
                 }
             } catch (e: Exception) {
-                // INI YANG PALING PENTING UNTUK MENANGKAP ERROR PARSING JSON
+                // Tangkap error jaringan agar tidak Force Close
                 android.util.Log.e("CBT_DEBUG", "💥 CRASH/EXCEPTION: ${e.message}", e)
-                withContext(Dispatchers.Main) { onError("Sistem mendeteksi error: ${e.message}") }
+                withContext(Dispatchers.Main) { onError("Sistem mendeteksi error jaringan/server: ${e.message}") }
             }
         }
     }
@@ -190,5 +203,9 @@ class ExamViewModel(private val repository: ExamRepository) : ViewModel() {
         if (sharedPrefs == null) {
             sharedPrefs = context.getSharedPreferences("CBT_PREFS", android.content.Context.MODE_PRIVATE)
         }
+    }
+    // 🚀 FUNGSI PINTU: Memberikan akses dbHelper ke Activity tanpa membuka akses private
+    fun getLocalDb(): LocalDBHelper? {
+        return dbHelper
     }
 }

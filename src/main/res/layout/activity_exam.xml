@@ -116,6 +116,90 @@
                 android:lineSpacingExtra="6dp"
                 android:layout_marginBottom="24dp" />
 
+            <LinearLayout
+                android:id="@+id/layoutGambarSoal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginTop="16dp">
+
+                <ImageView
+                    android:id="@+id/ivSoalGambar"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:scaleType="fitCenter"
+                    android:background="#F1F5F9" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Ketuk gambar untuk memperbesar"
+                    android:textAlignment="center"
+                    android:textSize="12sp"
+                    android:textColor="#64748B"
+                    android:layout_marginTop="8dp"
+                    android:drawablePadding="6dp"
+                    android:gravity="center"
+                    android:drawableStart="@android:drawable/ic_menu_search"
+                    app:drawableTint="#64748B"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutEssay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginTop="16dp">
+
+                <EditText
+                    android:id="@+id/etJawabanEssay"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:hint="Ketik jawaban uraian Anda di sini..."
+                    android:gravity="top|start"
+                    android:padding="16dp"
+                    android:background="@drawable/bg_input_field"
+                    android:textColor="#0F172A"
+                    android:textColorHint="#94A3B8"
+                    android:layout_marginBottom="16dp"/>
+
+                <Button
+                    android:id="@+id/btnUploadGambarJawaban"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Ambil Foto Jawaban"
+                    android:backgroundTint="#0F172A"
+                    android:textColor="@color/white"
+                    app:icon="@android:drawable/ic_menu_camera"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:cornerRadius="12dp"/>
+
+                <ImageView
+                    android:id="@+id/ivPreviewJawaban"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:layout_marginTop="16dp"
+                    android:scaleType="fitCenter"
+                    android:background="#FAFAFA"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/btnHapusGambarJawaban"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hapus Lampiran Foto"
+                    android:textColor="#DC2626"
+                    android:backgroundTint="#FEE2E2"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    app:icon="@android:drawable/ic_menu_delete"
+                    app:iconTint="#DC2626"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
             <RadioGroup
                 android:id="@+id/rgOpsiJawaban"
                 android:layout_width="match_parent"
@@ -166,6 +250,55 @@
                     android:buttonTint="#0052FF"
                     android:textColor="#334155" />
             </RadioGroup>
+
+            <LinearLayout
+                android:id="@+id/layoutEssay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/etJawabanEssay"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:hint="Ketik jawaban uraian Anda di sini..."
+                    android:gravity="top|start"
+                    android:padding="16dp"
+                    android:background="@drawable/bg_input_field"
+                    android:textColor="#0F172A"
+                    android:textColorHint="#94A3B8"
+                    android:layout_marginBottom="16dp"/>
+
+                <Button
+                    android:id="@+id/btnUploadGambarJawaban"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="📷 Lampirkan Foto Jawaban"
+                    android:backgroundTint="#0F172A"
+                    android:textColor="@color/white"
+                    app:cornerRadius="12dp"/>
+
+                <ImageView
+                    android:id="@+id/ivPreviewJawaban"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="12dp"
+                    android:scaleType="fitCenter"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/btnHapusGambarJawaban"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hapus Gambar"
+                    android:textColor="#DC2626"
+                    android:backgroundTint="#FEE2E2"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 

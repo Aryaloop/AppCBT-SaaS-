@@ -23,16 +23,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.examingrity.cbt.network.TautkanSekolahRequest
+
 class DashboardSiswaActivity : AppCompatActivity() {
 
     private lateinit var layoutUjian: View
     private lateinit var layoutRiwayat: View
     private lateinit var layoutProfile: View
     private lateinit var rvRiwayat: RecyclerView
-
     private lateinit var tvProfilNama: TextView
     private lateinit var tvProfilEmail: TextView
     private lateinit var tvProfilSekolah: TextView
+
+    private lateinit var tvProfilNisn: TextView // NEW
+    private var currentNisn: String = "" // Store current NISN for the dialog
+    private var currentNama: String = "" // Store current name
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +53,9 @@ class DashboardSiswaActivity : AppCompatActivity() {
 
         rvRiwayat = findViewById(R.id.rvRiwayat)
         rvRiwayat.layoutManager = LinearLayoutManager(this)
+        tvProfilNisn = findViewById(R.id.tvProfilNisn) // NEW
 
+        val btnEditProfil = findViewById<Button>(R.id.btnEditProfil) // NEW
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         val btnMulaiUjian = findViewById<Button>(R.id.btnMulaiUjian)
         val etPinUjian = findViewById<EditText>(R.id.etPinUjian)
@@ -94,9 +100,13 @@ class DashboardSiswaActivity : AppCompatActivity() {
             }
         }
 
-        // 🚀 LOGIKA POP-UP GANTI PASSWORD KEMBALI
+        //  LOGIKA POP-UP GANTI PASSWORD KEMBALI
         btnGantiPassword.setOnClickListener {
             tampilkanDialogGantiPassword()
+        }
+
+        btnEditProfil.setOnClickListener {
+            tampilkanDialogEditProfil()
         }
 
         btnLogout.setOnClickListener {
@@ -108,10 +118,12 @@ class DashboardSiswaActivity : AppCompatActivity() {
         // 2. TAMBAHKAN LISTENER KLIKNYA DI SINI
         btnTautkanSekolah.setOnClickListener {
             val token = etTokenSekolah.text.toString().trim()
-            if (token.isNotEmpty()) {
-                prosesTautkanSekolah(token)
+            val nisn = findViewById<EditText>(R.id.etNisnTautkan).text.toString().trim()
+
+            if (token.isNotEmpty() && nisn.isNotEmpty()) {
+                prosesTautkanSekolah(token, nisn) // Kirim dua data ke fungsi
             } else {
-                Toast.makeText(this, "Masukkan Token Sekolah!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Masukkan NISN dan Token Sekolah!", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -232,9 +244,15 @@ class DashboardSiswaActivity : AppCompatActivity() {
                 val response = ApiClient.instance.getProfileSiswa()
                 if (response.isSuccessful && response.body() != null) {
                     val profil = response.body()!!
+
+                    // Save for the edit dialog
+                    currentNama = profil.nama_lengkap
+                    currentNisn = profil.nisn ?: ""
+
                     withContext(Dispatchers.Main) {
                         tvProfilNama.text = profil.nama_lengkap
                         tvProfilEmail.text = profil.email
+                        tvProfilNisn.text = profil.nisn ?: "Belum diatur" // Display NISN
                         tvProfilSekolah.text = profil.sekolah
 
                         if (profil.sekolah.contains("Independen", ignoreCase = true)) {
@@ -252,20 +270,55 @@ class DashboardSiswaActivity : AppCompatActivity() {
         }
     }
 
-    private fun prosesTautkanSekolah(token: String) {
+    // UPDATE: Dialog Edit Profil murni hanya untuk ubah Nama
+    private fun tampilkanDialogEditProfil() {
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(60, 40, 60, 10)
+        }
+
+        val etNama = EditText(this).apply {
+            hint = "Nama Lengkap"
+            setText(currentNama)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            setPadding(0, 20, 0, 40)
+        }
+
+        // Hapus etNisn dari sini sepenuhnya
+        layout.addView(etNama)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Edit Profil")
+            .setView(layout)
+            .setNegativeButton("Batal", null)
+            .setPositiveButton("Simpan") { _, _ ->
+                val newNama = etNama.text.toString().trim()
+
+                if (newNama.isEmpty()) {
+                    Toast.makeText(this, "Nama tidak boleh kosong!", Toast.LENGTH_SHORT).show()
+                } else {
+                    prosesEditProfil(newNama) // Hanya kirim nama
+                }
+            }
+            .show()
+    }
+
+    // UPDATE: Hanya proses Nama, paksa NISN menjadi null agar tidak mengubah data di backend
+    private fun prosesEditProfil(namaBaru: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val request = TautkanSekolahRequest(token)
-                val response = ApiClient.instance.tautkanSekolah(request)
+                val request = UpdateProfileRequest(
+                    nama_lengkap = namaBaru,
+                    nisn = null // Kunci mati! Jangan pernah kirim NISN dari sini
+                )
+                val response = ApiClient.instance.updatePassword(request)
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@DashboardSiswaActivity, "Sekolah berhasil ditautkan!", Toast.LENGTH_LONG).show()
-                        // Refresh ulang data profil di layar
+                        Toast.makeText(this@DashboardSiswaActivity, "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
                         fetchProfileSiswa()
-                        findViewById<EditText>(R.id.etTokenSekolah).text.clear()
                     } else {
-                        Toast.makeText(this@DashboardSiswaActivity, "Token tidak valid / tidak ditemukan.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@DashboardSiswaActivity, "Gagal menyimpan perubahan.", Toast.LENGTH_LONG).show()
                     }
                 }
             } catch (e: Exception) {
@@ -275,6 +328,36 @@ class DashboardSiswaActivity : AppCompatActivity() {
             }
         }
     }
+    //  UPDATE: Masukkan parameter NISN
+    private fun prosesTautkanSekolah(token: String, nisn: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // Pastikan class TautkanSekolahRequest di ApiClient.kt
+                // sudah Anda tambahkan variabel (val token_sekolah: String, val nisn: String)
+                val request = TautkanSekolahRequest(token_sekolah = token, nisn = nisn)
+                val response = ApiClient.instance.tautkanSekolah(request)
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@DashboardSiswaActivity, "Sekolah berhasil ditautkan!", Toast.LENGTH_LONG).show()
+                        fetchProfileSiswa()
+                        // Bersihkan kedua input setelah berhasil
+                        findViewById<EditText>(R.id.etTokenSekolah).text.clear()
+                        findViewById<EditText>(R.id.etNisnTautkan).text.clear()
+                    } else {
+                        // Tampilkan pesan error dari backend (Misal: "NISN belum didaftarkan TU")
+                        val errorMsg = response.errorBody()?.string()
+                        Toast.makeText(this@DashboardSiswaActivity, "Gagal: Periksa kembali Token dan NISN Anda.", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@DashboardSiswaActivity, "Gagal terhubung ke server.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
