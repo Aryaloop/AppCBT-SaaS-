@@ -33,6 +33,13 @@ class ForgotPasswordActivity : AppCompatActivity() {
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
+                    // TAMBAHAN: Pancing Token CSRF dari server untuk halaman Registrasi
+                    try {
+                        ApiClient.instance.getCsrfToken()
+                    } catch (e: Exception) {
+                        // Abaikan error minor
+                    }
+
                     val request = ForgotPasswordRequest(email)
                     val response = ApiClient.instance.forgotPassword(request)
 

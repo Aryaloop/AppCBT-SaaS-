@@ -51,6 +51,12 @@ class LoginActivity : AppCompatActivity() {
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
+
+                    try {
+                        ApiClient.instance.getCsrfToken()
+                    } catch (e: Exception) {
+                        // Abaikan error minor, yang penting backend sudah mengirim cookie XSRF-TOKEN
+                    }
                     // 1. Ambil Public Key dari Server (Express.js)
                     val pkResponse = ApiClient.instance.getPublicKey()
                     if (!pkResponse.isSuccessful) throw Exception("Gagal mendapatkan kunci keamanan.")

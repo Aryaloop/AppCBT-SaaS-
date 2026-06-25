@@ -54,6 +54,13 @@ class ResetPasswordActivity : AppCompatActivity() {
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
+                    //  TAMBAHAN: Pancing Token CSRF dari server untuk halaman Registrasi
+                    try {
+                        ApiClient.instance.getCsrfToken()
+                    } catch (e: Exception) {
+                        // Abaikan error minor
+                    }
+
                     // 2. Ambil Public Key dari Server
                     val pubKeyResponse = ApiClient.instance.getPublicKey()
                     if (!pubKeyResponse.isSuccessful || pubKeyResponse.body() == null) {

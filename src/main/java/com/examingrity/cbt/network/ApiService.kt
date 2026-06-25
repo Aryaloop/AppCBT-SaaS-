@@ -13,6 +13,8 @@ import retrofit2.http.Multipart
 // MODEL DATA (DATA CLASSES)
 // ==========================================
 
+data class CsrfResponse(val csrfToken: String)
+
 data class LoginRequest(val email: String, val kata_sandi: String)
 
 data class RegisterRequest(
@@ -109,6 +111,9 @@ data class ProfilResponse(
 // ==========================================
 interface ApiService {
 
+//        Tambahkan endpoint ini di dalam interface ApiService
+    @GET("https://api.examingrity.my.id/csrf-token")
+    suspend fun getCsrfToken(): retrofit2.Response<CsrfResponse>
     @GET("auth/public-key")
     suspend fun getPublicKey(): Response<PublicKeyResponse>
 

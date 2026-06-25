@@ -12,7 +12,8 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
     // Sesuaikan dengan URL DevTunnels Anda
-    private const val BASE_URL = "https://tqbn4sng-3000.asse.devtunnels.ms/api/"
+//    private const val BASE_URL = "https://tqbn4sng-3000.asse.devtunnels.ms/api/"
+    private const val BASE_URL = "https://api.examingrity.my.id/api/"
     private const val APP_SECRET = "Rahas1a_Sistem_Ujian_SaaS_2026!"
 
     // KODE BARU: Penyimpanan Cookie Sementara di Memori Android (DIperbaiki)
@@ -38,11 +39,21 @@ object ApiClient {
     }
     val instance: ApiService by lazy {
         val headerInterceptor = Interceptor { chain ->
-            val request = chain.request().newBuilder()
+            val requestBuilder = chain.request().newBuilder()
                 .addHeader("x-app-signature", APP_SECRET)
                 .addHeader("Content-Type", "application/json")
-                .build()
-            chain.proceed(request)
+
+            // 🚀 LOGIKA BARU: Ekstrak CSRF Token dari Cookie yang tersimpan
+            val urlHost = chain.request().url.host
+            val cookies = cookieStore[urlHost]
+            val csrfCookie = cookies?.find { it.name == "XSRF-TOKEN" }
+
+            // Jika token CSRF ada di memori, masukkan ke header
+            if (csrfCookie != null) {
+                requestBuilder.addHeader("X-XSRF-TOKEN", csrfCookie.value)
+            }
+
+            chain.proceed(requestBuilder.build())
         }
 
         val loggingInterceptor = HttpLoggingInterceptor().apply {

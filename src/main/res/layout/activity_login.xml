@@ -94,27 +94,27 @@
             android:layout_marginBottom="8dp"
             android:layout_marginStart="4dp" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:passwordToggleEnabled="true"
-            app:passwordToggleTint="@color/slate_600">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPassword"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPassword"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:hint="Kata Sandi"
-                android:background="@drawable/bg_input_field"
-                android:paddingHorizontal="20dp"
-                android:inputType="textPassword"
-                android:fontFamily="@font/inter_regular"
-                android:textColor="@color/slate_900"
-                android:textColorHint="@color/slate_600" />
+                android:layout_height="wrap_content"
+                app:hintEnabled="false"
+                app:endIconMode="password_toggle"
+                app:endIconTint="@color/slate_600">
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:hint="Kata Sandi"
+                    android:background="@drawable/bg_input_field"
+                    android:paddingHorizontal="20dp"
+                    android:inputType="textPassword"
+                    android:fontFamily="@font/inter_regular"
+                    android:textColor="@color/slate_900"
+                    android:textColorHint="@color/slate_600" />
 
+            </com.google.android.material.textfield.TextInputLayout>
         <TextView
             android:id="@+id/tvForgotPassword"
             android:layout_width="wrap_content"
