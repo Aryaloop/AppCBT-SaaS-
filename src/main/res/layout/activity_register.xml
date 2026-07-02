@@ -119,11 +119,13 @@
                 android:fontFamily="@font/inter_bold"
                 android:layout_marginBottom="8dp"
                 android:layout_marginStart="4dp" />
-
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:passwordToggleEnabled="true">
+                app:passwordToggleEnabled="true"
+                app:hintEnabled="false"
+                app:passwordToggleTint="@color/slate_900"
+                android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPassword"
@@ -131,7 +133,12 @@
                     android:layout_height="56dp"
                     android:hint="Minimal 6 karakter"
                     android:inputType="textPassword"
-                    android:background="@drawable/bg_input_field" />
+                    android:background="@drawable/bg_input_field"
+                    android:paddingHorizontal="16dp"
+                    android:textColor="@color/slate_900"
+                    android:textColorHint="@color/slate_900"
+                    android:fontFamily="@font/inter_regular"
+                    android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -146,17 +153,23 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:passwordToggleEnabled="true">
+                app:passwordToggleEnabled="true"
+                app:hintEnabled="false"
+                app:passwordToggleTint="@color/slate_900">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPassword"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
+                    android:background="@drawable/bg_input_field"
+                    android:fontFamily="@font/inter_regular"
                     android:hint="Minimal 6 karakter"
                     android:inputType="textPassword"
-                    android:background="@drawable/bg_input_field" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
+                    android:paddingHorizontal="16dp"
+                    android:textColor="@color/slate_900"
+                    android:textColorHint="@color/slate_900"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>        </LinearLayout>
 
         <Button
             android:id="@+id/btnRegister"

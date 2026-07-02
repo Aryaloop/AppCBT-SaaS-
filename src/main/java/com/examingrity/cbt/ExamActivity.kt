@@ -86,8 +86,8 @@ class ExamActivity : AppCompatActivity() {
     private val TAG = "ExamActivity"
 
     private lateinit var tvViolation: TextView // <--- TAMBAHKAN INI
-
-    // ==========================================
+    
+    // =================    =========================
     // 2. DEKLARASI SENSOR (JARINGAN & BATERAI)
     // ==========================================
     private lateinit var connectivityManager: ConnectivityManager
@@ -185,6 +185,13 @@ class ExamActivity : AppCompatActivity() {
         viewModel.loadExamData(tokenUjian) { errorMessage ->
             runOnUiThread { tampilkanErrorFatal(errorMessage) }
         }
+        // Tambahkan di dalam onCreate() ExamActivity
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Mencegah siswa kembali ke Dashboard menggunakan tombol/swipe back
+                Toast.makeText(this@ExamActivity, "Aksi diblokir! Gunakan tombol di layar untuk navigasi ujian.", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun aktifkanSensor() {
@@ -737,10 +744,10 @@ class ExamActivity : AppCompatActivity() {
         }
     }
     // Blokir tombol fisik "Back"
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        Toast.makeText(this, "Aksi diblokir! Gunakan tombol di layar.", Toast.LENGTH_SHORT).show()
-    }
+//    @Deprecated("Deprecated in Java")
+//    override fun onBackPressed() {
+//        Toast.makeText(this, "Aksi diblokir! Gunakan tombol di layar.", Toast.LENGTH_SHORT).show()
+//    }
 
     private fun keluarModeAman() {
         isMemprosesKeluar = true

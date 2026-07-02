@@ -59,6 +59,7 @@ class DashboardSiswaActivity : AppCompatActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         val btnMulaiUjian = findViewById<Button>(R.id.btnMulaiUjian)
         val etPinUjian = findViewById<EditText>(R.id.etPinUjian)
+        etPinUjian.filters = arrayOf(android.text.InputFilter.AllCaps(), android.text.InputFilter.LengthFilter(8))
         val btnGantiPassword = findViewById<Button>(R.id.btnGantiPassword)
         val btnLogout = findViewById<Button>(R.id.btnLogout)
         // 1. TAMBAHKAN INIT ID TAUTKAN SEKOLAH DI SINI
