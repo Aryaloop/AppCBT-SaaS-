@@ -151,18 +151,10 @@ fun loadExamData(token: String, onError: (String) -> Unit) {
     // Fungsi Submit saat Waktu Habis (Atau saat ditekan tombol Selesai manual)
     fun submitUjianOtomatis() {
         if (participantId == -1) return
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                // Array dikosongkan karena backend menghitung mandiri dari auto-save
-                val res = repository.submitUjian(participantId, SubmitUjianRequest(emptyList()))
-                if (res.isSuccessful) {
-                    dbHelper?.hapusSesi(participantId) // Bersihkan sampah SQLite
-                    _isExamFinished.value = true // Beritahu Activity untuk menutup layar
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("CBT_DEBUG", "Gagal auto-submit: ${e.message}")
-            }
-        }
+
+        // Cukup beritahu Activity bahwa waktu sudah habis.
+        // Biarkan ExamActivity yang mengumpulkan foto, teks, dan menghapus SQLite.
+        _isExamFinished.value = true
     }
 
     fun nextSoal() { if (_currentIndex.value < _soalList.value.size - 1) _currentIndex.value++ }

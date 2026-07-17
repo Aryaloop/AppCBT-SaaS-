@@ -594,21 +594,28 @@ class ExamActivity : AppCompatActivity() {
                 // 2. Loop semua soal untuk diunggah fotonya (jika ada)
                 for ((soalId, jawabanTeks) in savedAnswers) {
                     var finalFileUrl: String? = null
-
                     val localPath = savedPhotos[soalId]
-                    if (localPath != null) {
-                        val file = File(localPath)
-                        if (file.exists()) {
-                            withContext(Dispatchers.Main) { btnSelanjutnya.text = "Mengunggah Foto Soal..." }
 
-                            // Bungkus foto menjadi bentuk Multipart
-                            val reqFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
-                            val body = MultipartBody.Part.createFormData("foto_jawaban", file.name, reqFile)
+                    if (localPath != null) {
+                        val originalFile = File(localPath)
+                        if (originalFile.exists()) {
+                            withContext(Dispatchers.Main) { btnSelanjutnya.text = "Mengompres & Mengunggah Foto..." }
+
+                            // 🚀 PANGGIL FUNGSI KOMPRESI DI SINI SEBELUM MENGIRIM!
+                            val compressedFile = compressImage(originalFile)
+
+                            // Gunakan compressedFile yang ukurannya sudah KB, bukan MB lagi
+                            val reqFile = compressedFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                            val body = MultipartBody.Part.createFormData("foto_jawaban", compressedFile.name, reqFile)
 
                             // Tembak foto ke Server Node.js
                             val uploadRes = ApiClient.instance.uploadFotoJawaban(viewModel.participantId, body)
+
+                            // 🚀 PERBAIKAN: Jika gagal upload foto, lemparkan error agar masuk ke blok Catch!
                             if (uploadRes.isSuccessful) {
-                                finalFileUrl = uploadRes.body()?.url // Dapatkan link URL publiknya
+                                finalFileUrl = uploadRes.body()?.url
+                            } else {
+                                throw Exception("Gagal mengunggah gambar. Backend menolak request.")
                             }
                         }
                     }
@@ -767,6 +774,63 @@ class ExamActivity : AppCompatActivity() {
             unregisterReceiver(systemReceiver)
         } catch (e: Exception) {
             Log.e(TAG, "Gagal melepas sensor: ${e.message}")
+        }
+    }
+
+    // 🚀 FUNGSI BARU: Kompresi Gambar di sisi Android (Client-Side Compression)
+    private suspend fun compressImage(file: File): File = withContext(Dispatchers.IO) {
+        try {
+            // 1. Baca ukuran asli gambar tanpa memuat seluruh pixelnya ke RAM (Mencegah OutOfMemoryError)
+            val options = android.graphics.BitmapFactory.Options()
+            options.inJustDecodeBounds = true
+            android.graphics.BitmapFactory.decodeFile(file.absolutePath, options)
+
+            // 2. Hitung skala pengecilan (inSampleSize). Target kita maksimal dimensi 800px.
+            var inSampleSize = 1
+            val maxDim = 800
+            if (options.outHeight > maxDim || options.outWidth > maxDim) {
+                val halfHeight = options.outHeight / 2
+                val halfWidth = options.outWidth / 2
+                while (halfHeight / inSampleSize >= maxDim && halfWidth / inSampleSize >= maxDim) {
+                    inSampleSize *= 2
+                }
+            }
+
+            // 3. Muat gambar sesungguhnya ke memori dengan skala yang sudah diperkecil
+            options.inJustDecodeBounds = false
+            options.inSampleSize = inSampleSize
+            var bitmap = android.graphics.BitmapFactory.decodeFile(file.absolutePath, options)
+
+            // 4. (Opsional tapi Penting): Putar gambar jika terbalik (masalah umum pada foto dari kamera Android)
+            val exif = android.media.ExifInterface(file.absolutePath)
+            val orientation = exif.getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_UNDEFINED)
+            val matrix = android.graphics.Matrix()
+            when (orientation) {
+                android.media.ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                android.media.ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                android.media.ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            }
+            bitmap = android.graphics.Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+
+            // 5. Tulis ulang gambar ke dalam file baru dengan kualitas kompresi 80%
+            val compressedFileName = "compressed_${System.currentTimeMillis()}.jpg"
+            val compressedFile = File(filesDir, compressedFileName)
+            val outputStream = FileOutputStream(compressedFile)
+
+            // Kualitas 80 sudah sangat cukup untuk dibaca guru dan ukuran filenya drastis mengecil
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, outputStream)
+
+            outputStream.flush()
+            outputStream.close()
+
+            // Hapus file asli yang ukurannya raksasa untuk menghemat memori internal HP siswa
+            file.delete()
+
+            return@withContext compressedFile
+        } catch (e: Exception) {
+            android.util.Log.e("CBT_DEBUG", "Gagal mengompres gambar, menggunakan gambar asli. Error: ${e.message}")
+            // Fallback: Jika proses kompresi gagal, kembalikan file aslinya saja daripada error
+            return@withContext file
         }
     }
 
