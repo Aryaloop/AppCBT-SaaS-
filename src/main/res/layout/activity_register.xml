@@ -134,7 +134,7 @@
                     android:hint="Minimal 6 karakter"
                     android:inputType="textPassword"
                     android:background="@drawable/bg_input_field"
-                    android:paddingHorizontal="16dp"
+                    android:paddingHorizontal="20dp"
                     android:textColor="@color/slate_900"
                     android:textColorHint="@color/slate_900"
                     android:fontFamily="@font/inter_regular"
@@ -165,11 +165,12 @@
                     android:fontFamily="@font/inter_regular"
                     android:hint="Minimal 6 karakter"
                     android:inputType="textPassword"
-                    android:paddingHorizontal="16dp"
+                    android:paddingHorizontal="20dp"
                     android:textColor="@color/slate_900"
                     android:textColorHint="@color/slate_900"
                     android:textSize="14sp" />
-            </com.google.android.material.textfield.TextInputLayout>        </LinearLayout>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnRegister"

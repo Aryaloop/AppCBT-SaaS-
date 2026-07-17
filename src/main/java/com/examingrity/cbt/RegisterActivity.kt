@@ -36,6 +36,25 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // ==========================================
+            // 🚀 PERBAIKAN: VALIDASI LAPIS PERTAMA (CLIENT-SIDE)
+            // ==========================================
+
+            // 1. Validasi Karakter Nama (Hanya Huruf & Spasi/Tanda Baca Wajar)
+            val nameRegex = Regex("^[a-zA-Z\\s.,']+$")
+            if (!nama.matches(nameRegex)) {
+                Toast.makeText(this, "Nama tidak valid. Hindari penggunaan angka atau simbol unik.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+
+            // 2. Validasi Format Email
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, "Format email tidak valid. Pastikan ada simbol @ dan domain.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+
+            // ==========================================
+
             if (password != confirm) {
                 Toast.makeText(this, "Kata sandi tidak cocok.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
