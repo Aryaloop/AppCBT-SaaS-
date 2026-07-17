@@ -4,6 +4,8 @@ import retrofit2.Response
 
 class ExamRepository(private val apiService: ApiService) {
 
+    suspend fun fetchCsrfToken() = apiService.getCsrfToken()
+
     suspend fun mulaiSesi(pin: String): Response<MulaiUjianResponse> =
         apiService.mulaiSesiUjian(pin)
 

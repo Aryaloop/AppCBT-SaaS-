@@ -55,61 +55,75 @@ class ExamViewModel(private val repository: ExamRepository) : ViewModel() {
     val isExamFinished: StateFlow<Boolean> = _isExamFinished
 
 // Fungsi: Ambil Data Ujian
-    fun loadExamData(token: String, onError: (String) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
+// Fungsi: Ambil Data Ujian
+fun loadExamData(token: String, onError: (String) -> Unit) {
+    viewModelScope.launch(Dispatchers.IO) {
+        try {
+            // 🚀 PERBAIKAN: Tarik token CSRF terlebih dahulu agar masuk ke CookieJar
             try {
-                val sesiRes = repository.mulaiSesi(token)
+                repository.fetchCsrfToken()
+            } catch (e: Exception) {
+                android.util.Log.e("CBT_DEBUG", "Gagal fetch CSRF Token: ${e.message}")
+                // Lanjut saja, biarkan backend yang menolak jika memang token wajib
+            }
 
-                if (sesiRes.isSuccessful) {
-                    val data = sesiRes.body()?.data!!
-                    participantId = data.participant_id
+            // Setelah token tersimpan di memori Android, baru eksekusi POST mulai sesi
+            val sesiRes = repository.mulaiSesi(token)
 
-                    val soalRes = repository.getSoal(participantId)
+            if (sesiRes.isSuccessful) {
+                // ✅ BARIS YANG KEMBALI DITAMBAHKAN (Sempat Terhapus)
+                val data = sesiRes.body()?.data!!
+                participantId = data.participant_id
 
-                    if (soalRes.isSuccessful) {
-                        val daftarSoal = soalRes.body()?.data ?: emptyList()
+                // Ambil daftar soal berdasarkan ID Peserta
+                val soalRes = repository.getSoal(participantId)
 
-                        if (daftarSoal.isEmpty()) {
-                            withContext(Dispatchers.Main) { onError("Daftar soal dari server kosong.") }
-                        } else {
-                            // 🛡️ RECOVERY SQLite di jalur Background (Aman)
-                            val savedAnswers = getLocalDb()?.getSemuaJawabanTeks(participantId) ?: emptyMap()
-                            val savedPhotos = getLocalDb()?.getSemuaPathFoto(participantId) ?: emptyMap()
+                if (soalRes.isSuccessful) {
+                    val daftarSoal = soalRes.body()?.data ?: emptyList()
 
-                            jawabanSiswa.putAll(savedAnswers)
-                            fotoSiswa.putAll(savedPhotos)
-
-                            // 🚀 PERBAIKAN RACE CONDITION:
-                            // Lempar UI Update & Timer WAJIB ke Main Thread
-                            withContext(Dispatchers.Main) {
-                                _soalList.value = daftarSoal
-                                // Ini tidak akan crash lagi karena berjalan di Main Thread
-                                startTimer(data.sisa_waktu_menit * 60)
-                            }
-                        }
+                    if (daftarSoal.isEmpty()) {
+                        withContext(Dispatchers.Main) { onError("Daftar soal dari server kosong.") }
                     } else {
-                        // ❌ Gagal Tarik Soal
-                        val errSoal = soalRes.errorBody()?.string()
-                        val pesanSpesifik = try {
-                            org.json.JSONObject(errSoal!!).getString("message")
-                        } catch (e: Exception) { "Gagal menarik daftar soal dari server." }
-                        withContext(Dispatchers.Main) { onError(pesanSpesifik) }
+                        // 🛡️ RECOVERY SQLite di jalur Background (Aman)
+                        val savedAnswers = getLocalDb()?.getSemuaJawabanTeks(participantId) ?: emptyMap()
+                        val savedPhotos = getLocalDb()?.getSemuaPathFoto(participantId) ?: emptyMap()
+
+                        jawabanSiswa.putAll(savedAnswers)
+                        fotoSiswa.putAll(savedPhotos)
+
+                        // 🚀 PERBAIKAN RACE CONDITION:
+                        // Lempar UI Update & Timer WAJIB ke Main Thread
+                        withContext(Dispatchers.Main) {
+                            _soalList.value = daftarSoal
+                            // Menggunakan 'data' yang sudah dikembalikan di atas
+                            startTimer(data.sisa_waktu_menit * 60)
+                        }
                     }
                 } else {
-                    // ❌ Gagal Mulai Sesi
-                    val errSesi = sesiRes.errorBody()?.string()
+                    // ❌ Gagal Tarik Soal
+                    val errSoal = soalRes.errorBody()?.string()
                     val pesanSpesifik = try {
-                        org.json.JSONObject(errSesi!!).getString("message")
-                    } catch (e: Exception) { "Sesi ditolak. PIN salah atau ujian belum dimulai." }
+                        org.json.JSONObject(errSoal!!).getString("message")
+                    } catch (e: Exception) { "Gagal menarik daftar soal dari server." }
                     withContext(Dispatchers.Main) { onError(pesanSpesifik) }
                 }
-            } catch (e: Exception) {
-                // Tangkap error jaringan agar tidak Force Close
-                android.util.Log.e("CBT_DEBUG", "💥 CRASH/EXCEPTION: ${e.message}", e)
-                withContext(Dispatchers.Main) { onError("Sistem mendeteksi error jaringan/server: ${e.message}") }
+            } else {
+                // ❌ Gagal Mulai Sesi
+                val errSesi = sesiRes.errorBody()?.string()
+                val pesanSpesifik = try {
+                    org.json.JSONObject(errSesi!!).getString("message")
+                } catch (e: Exception) { "Sesi ditolak. PIN salah atau ujian belum dimulai." }
+                withContext(Dispatchers.Main) { onError(pesanSpesifik) }
             }
+        } catch (e: Exception) {
+            // Tangkap error jaringan agar tidak Force Close
+            android.util.Log.e("CBT_DEBUG", "💥 CRASH/EXCEPTION: ${e.message}", e)
+            withContext(Dispatchers.Main) { onError("Sistem mendeteksi error jaringan/server: ${e.message}") }
         }
     }
+}
+
+
     // Fungsi: Timer (Looping Coroutine)
     private fun startTimer(totalDetik: Int) {
         if (isTimerRunning) return

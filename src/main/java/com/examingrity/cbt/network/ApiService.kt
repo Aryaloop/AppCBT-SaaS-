@@ -111,8 +111,8 @@ data class ProfilResponse(
 // ==========================================
 interface ApiService {
 
-//        Tambahkan endpoint ini di dalam interface ApiService
-    @GET("https://api.examingrity.my.id/csrf-token")
+////        Tambahkan endpoint ini di dalam interface ApiService
+    @GET("csrf-token")
     suspend fun getCsrfToken(): retrofit2.Response<CsrfResponse>
     @GET("auth/public-key")
     suspend fun getPublicKey(): Response<PublicKeyResponse>
