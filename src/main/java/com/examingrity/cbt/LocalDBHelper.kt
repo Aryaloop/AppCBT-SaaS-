@@ -5,10 +5,9 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class LocalDBHelper(context: Context) : SQLiteOpenHelper(context, "examingrity_cbt.db", null, 2) {
+class LocalDBHelper(context: Context) : SQLiteOpenHelper(context, "examingrity_cbt.db", null, 3) {
 
     override fun onCreate(db: SQLiteDatabase) {
-        // 🚀 UPGRADE: Tabel sekarang mendukung kolom file_path
         db.execSQL("""
             CREATE TABLE jawaban_lokal (
                 participant_id INTEGER, 
@@ -18,11 +17,62 @@ class LocalDBHelper(context: Context) : SQLiteOpenHelper(context, "examingrity_c
                 PRIMARY KEY(participant_id, soal_id)
             )
         """.trimIndent())
+
+        // 🚀 TAMBAHAN: Tabel untuk Fault Tolerance Log Pelanggaran
+        db.execSQL("""
+            CREATE TABLE log_lokal (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                participant_id INTEGER,
+                jenis_log TEXT,
+                deskripsi TEXT,
+                waktu TEXT
+            )
+        """.trimIndent())
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS jawaban_lokal")
+        db.execSQL("DROP TABLE IF EXISTS log_lokal") // 🚀 TAMBAHAN
         onCreate(db)
+    }
+
+    // ==============================================================
+    // 🚀 FUNGSI BARU UNTUK LOG PELANGGARAN OFFLINE
+    // ==============================================================
+    fun simpanLogTertunda(participantId: Int, jenis: String, deskripsi: String, waktu: String): Long {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("participant_id", participantId)
+            put("jenis_log", jenis)
+            put("deskripsi", deskripsi)
+            put("waktu", waktu)
+        }
+        return db.insert("log_lokal", null, values) // Mengembalikan ID baris
+    }
+
+    fun getLogTertunda(participantId: Int): List<Map<String, String>> {
+        val db = this.readableDatabase
+        val list = mutableListOf<Map<String, String>>()
+        val cursor = db.rawQuery("SELECT id, jenis_log, deskripsi, waktu FROM log_lokal WHERE participant_id = ?", arrayOf(participantId.toString()))
+
+        if (cursor.moveToFirst()) {
+            do {
+                val map = mapOf(
+                    "id" to cursor.getInt(0).toString(),
+                    "jenis_log" to (cursor.getString(1) ?: ""),
+                    "deskripsi" to (cursor.getString(2) ?: ""),
+                    "waktu" to (cursor.getString(3) ?: "")
+                )
+                list.add(map)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun hapusLog(id: Long) {
+        val db = this.writableDatabase
+        db.delete("log_lokal", "id = ?", arrayOf(id.toString()))
     }
 
     // ==============================================================

@@ -178,27 +178,61 @@ fun loadExamData(token: String, onError: (String) -> Unit) {
     }
 
     // 3. TAMBAHKAN PARAMETER isKecurangan = true
+// 🚀 PERBAIKAN: Fungsi catatPelanggaran
     fun catatPelanggaran(jenis: String, deskripsi: String, isKecurangan: Boolean = true) {
         if (participantId == -1) return
 
-        // HANYA TAMBAH ANGKA & SIMPAN KE MEMORI JIKA ITU BENAR-BENAR KECURANGAN (Bukan internet)
         if (isKecurangan) {
             _jumlahPelanggaran.value++
-            // Simpan permanen ke memori HP agar tidak hilang saat aplikasi Crash
             sharedPrefs?.edit()?.putInt("VIOLATIONS_$participantId", _jumlahPelanggaran.value)?.apply()
         }
 
         val waktu = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
 
         viewModelScope.launch(Dispatchers.IO) {
+            // 1. Amankan ke brankas SQLite dulu!
+            val logId = dbHelper?.simpanLogTertunda(participantId, jenis, deskripsi, waktu) ?: -1L
+
             try {
-                repository.kirimLog(participantId, LogRequest(jenis, deskripsi, waktu))
+                // 2. Coba kirim langsung ke server
+                val response = repository.kirimLog(participantId, LogRequest(jenis, deskripsi, waktu))
+
+                // 3. Jika berhasil sampai ke server, hapus dari antrean lokal
+                if (response.isSuccessful && logId != -1L) {
+                    dbHelper?.hapusLog(logId)
+                }
             } catch (e: Exception) {
-                android.util.Log.e("CBT_DEBUG", "Gagal kirim log CCTV (Siswa Offline)")
+                // Jika error (koneksi putus), biarkan saja. Data sudah aman di SQLite.
+                android.util.Log.e("CBT_DEBUG", "Log gagal dikirim, tertahan aman di SQLite: ${e.message}")
             }
         }
     }
 
+    // 🚀 TAMBAHAN: Mesin Sinkronisasi Log Tertunda
+    fun syncLogTertunda() {
+        if (participantId == -1) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val pendingLogs = dbHelper?.getLogTertunda(participantId) ?: emptyList()
+
+            for (log in pendingLogs) {
+                try {
+                    val req = LogRequest(
+                        jenis_log = log["jenis_log"]!!,
+                        deskripsi = log["deskripsi"]!!,
+                        waktu_kejadian_lokal = log["waktu"]!!
+                    )
+                    val res = repository.kirimLog(participantId, req)
+
+                    if (res.isSuccessful) {
+                        dbHelper?.hapusLog(log["id"]!!.toLong()) // Bersihkan dari antrean
+                    }
+                } catch (e: Exception) {
+                    break // Berhenti me-looping jika internet masih mati
+                }
+            }
+        }
+    }
 
     // Inisialisasi SQLite dari Activity
     // Inisialisasi SQLite dan SharedPreferences dari Activity

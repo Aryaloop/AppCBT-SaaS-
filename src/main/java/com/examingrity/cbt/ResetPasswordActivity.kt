@@ -13,6 +13,7 @@ import com.examingrity.cbt.utils.RsaHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject // Pastikan import ini ditambahkan
 
 class ResetPasswordActivity : AppCompatActivity() {
 
@@ -54,12 +55,7 @@ class ResetPasswordActivity : AppCompatActivity() {
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
-                    //  TAMBAHAN: Pancing Token CSRF dari server untuk halaman Registrasi
-                    try {
-                        ApiClient.instance.getCsrfToken()
-                    } catch (e: Exception) {
-                        // Abaikan error minor
-                    }
+                    // DIBUANG: getCsrfToken() tidak diperlukan karena rute ini public
 
                     // 2. Ambil Public Key dari Server
                     val pubKeyResponse = ApiClient.instance.getPublicKey()
@@ -83,7 +79,20 @@ class ResetPasswordActivity : AppCompatActivity() {
                         } else {
                             btnSavePassword.isEnabled = true
                             btnSavePassword.text = "Simpan Kata Sandi"
-                            Toast.makeText(this@ResetPasswordActivity, "Gagal mereset. Token mungkin kadaluwarsa.", Toast.LENGTH_LONG).show()
+
+                            // PERBAIKAN: Tangkap pesan spesifik jika token expired atau dekripsi gagal
+                            val errorMessage = try {
+                                val errorString = response.errorBody()?.string()
+                                if (!errorString.isNullOrEmpty()) {
+                                    JSONObject(errorString).getString("message")
+                                } else {
+                                    "Gagal mereset. Token mungkin kadaluwarsa."
+                                }
+                            } catch (e: Exception) {
+                                "Terjadi kesalahan pada server."
+                            }
+
+                            Toast.makeText(this@ResetPasswordActivity, errorMessage, Toast.LENGTH_LONG).show()
                         }
                     }
                 } catch (e: Exception) {

@@ -11,6 +11,7 @@ import com.examingrity.cbt.network.ForgotPasswordRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject // Pastikan import ini ditambahkan
 
 class ForgotPasswordActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,17 +29,13 @@ class ForgotPasswordActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Cegah klik ganda / spamming dari sisi UI
             btnSendResetLink.isEnabled = false
             btnSendResetLink.text = "Mengirim..."
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
-                    // TAMBAHAN: Pancing Token CSRF dari server untuk halaman Registrasi
-                    try {
-                        ApiClient.instance.getCsrfToken()
-                    } catch (e: Exception) {
-                        // Abaikan error minor
-                    }
+                    // DIBUANG: getCsrfToken() tidak diperlukan karena rute ini public
 
                     val request = ForgotPasswordRequest(email)
                     val response = ApiClient.instance.forgotPassword(request)
@@ -51,15 +48,26 @@ class ForgotPasswordActivity : AppCompatActivity() {
                             Toast.makeText(this@ForgotPasswordActivity, "Tautan terkirim! Silakan cek email Anda.", Toast.LENGTH_LONG).show()
                             finish() // Kembali ke halaman Login
                         } else {
-                            // Menangani error dari backend (misal: spam 3 menit atau email tidak ada)
-                            Toast.makeText(this@ForgotPasswordActivity, "Gagal: Periksa kembali email Anda.", Toast.LENGTH_LONG).show()
+                            // PERBAIKAN: Tangkap pesan error dari Node.js (misal 404 Email tidak ada, atau 429 Rate Limit)
+                            val errorMessage = try {
+                                val errorString = response.errorBody()?.string()
+                                if (!errorString.isNullOrEmpty()) {
+                                    JSONObject(errorString).getString("message")
+                                } else {
+                                    "Gagal: Periksa kembali email Anda."
+                                }
+                            } catch (e: Exception) {
+                                "Terjadi kesalahan pada server."
+                            }
+
+                            Toast.makeText(this@ForgotPasswordActivity, errorMessage, Toast.LENGTH_LONG).show()
                         }
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         btnSendResetLink.isEnabled = true
                         btnSendResetLink.text = "Kirim Tautan Pemulihan"
-                        Toast.makeText(this@ForgotPasswordActivity, "Kesalahan jaringan.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@ForgotPasswordActivity, "Kesalahan jaringan: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

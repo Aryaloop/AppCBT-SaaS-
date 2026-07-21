@@ -110,9 +110,10 @@ class ExamActivity : AppCompatActivity() {
             runOnUiThread {
                 Toast.makeText(this@ExamActivity, "Koneksi Dipulihkan", Toast.LENGTH_SHORT).show()
             }
-            // isKecurangan = false -> Lapor ke guru, tapi jangan hukum siswanya!
             if (viewModel.participantId != -1) {
                 viewModel.catatPelanggaran("RESTORED_CONNECTION", "Koneksi internet kembali normal.", isKecurangan = false)
+                // 🚀 TRIGGER SINKRONISASI KETIKA KONEKSI KEMBALI
+                viewModel.syncLogTertunda()
             }
         }
     }
@@ -583,6 +584,8 @@ class ExamActivity : AppCompatActivity() {
         disableNavigation()
         btnSelanjutnya.text = "Mempersiapkan data..."
 
+        viewModel.syncLogTertunda()
+
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val finalAnswers = mutableListOf<AnswerItem>()
@@ -659,6 +662,11 @@ class ExamActivity : AppCompatActivity() {
             .setPositiveButton("Buka Pengaturan Wi-Fi") { _, _ ->
                 // Beritahu CCTV agar merem sebentar
                 isMembukaPanelJaringan = true
+                try {
+                    stopLockTask()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Gagal melepas pinning sementara: ${e.message}")
+                }
 
                 // Panggil pop-up Wi-Fi bawaan Android
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
