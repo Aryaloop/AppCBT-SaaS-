@@ -269,8 +269,14 @@ class ExamActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.isExamFinished.collectLatest { selesai ->
                 if (selesai) {
-                    Toast.makeText(this@ExamActivity, "Waktu habis! Memproses pengumpulan otomatis...", Toast.LENGTH_LONG).show()
-                    prosesKumpulJawaban() // 🚀 SEKARANG DIA AKAN OTOMATIS MENGUNGGAH MESKI WAKTU HABIS
+                    // ✅ JEDA VISUAL: Biarkan UI me-render soal dan gambar dari SQLite selama 3 detik
+                    // agar siswa melihat datanya aman, baru eksekusi pengumpulan!
+                    Toast.makeText(this@ExamActivity, "Waktu Ujian Habis! Menyiapkan penyerahan otomatis...", Toast.LENGTH_LONG).show()
+
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        kotlinx.coroutines.delay(3000) // Tahan 3 detik
+                        prosesKumpulJawaban()
+                    }
                 }
             }
         }
@@ -381,6 +387,7 @@ class ExamActivity : AppCompatActivity() {
                     viewModel.jawabanSiswa[soalId] = teksJawaban
                     // Amankan fisik datanya langsung ke SQLite lokal
                     viewModel.getLocalDb()?.simpanJawabanLengkap(viewModel.participantId, soalId, teksJawaban, localImagePathTemp)
+                    viewModel.autoSaveTeksKeServer(soalId, teksJawaban)
                 }
             }
         })
@@ -582,73 +589,96 @@ class ExamActivity : AppCompatActivity() {
 
     private fun prosesKumpulJawaban() {
         disableNavigation()
-        btnSelanjutnya.text = "Mempersiapkan data..."
+        btnSelanjutnya.text = "Mohon Tunggu... Menyiapkan Data"
+        btnSelanjutnya.setBackgroundColor(android.graphics.Color.GRAY)
 
         viewModel.syncLogTertunda()
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                kotlinx.coroutines.delay(1000)
+
                 val finalAnswers = mutableListOf<AnswerItem>()
 
-                // 1. Tarik semua jawaban teks & foto dari brankas SQLite
+                // Tarik data dari SQLite
                 val savedAnswers = viewModel.getLocalDb()?.getSemuaJawabanTeks(viewModel.participantId) ?: emptyMap()
                 val savedPhotos = viewModel.getLocalDb()?.getSemuaPathFoto(viewModel.participantId) ?: emptyMap()
 
-                // 2. Loop semua soal untuk diunggah fotonya (jika ada)
-                for ((soalId, jawabanTeks) in savedAnswers) {
-                    var finalFileUrl: String? = null
+                // ✅ PERBAIKAN FATAL: Gabungkan kunci (ID Soal) dari teks DAN foto.
+                // Sebelumnya, jika soal hanya diisi foto tanpa teks, ID soal tersebut berisiko terlewat oleh loop.
+                val semuaIdSoalDijawab = savedAnswers.keys + savedPhotos.keys
+
+                var totalFotoDiunggah = 0
+                val totalFoto = savedPhotos.size
+
+                // Looping menggunakan gabungan ID yang unik (distinct)
+                for (soalId in semuaIdSoalDijawab.distinct()) {
+                    val jawabanTeks = savedAnswers[soalId] ?: ""
                     val localPath = savedPhotos[soalId]
+                    var finalFileUrl: String? = null
 
                     if (localPath != null) {
                         val originalFile = File(localPath)
                         if (originalFile.exists()) {
-                            withContext(Dispatchers.Main) { btnSelanjutnya.text = "Mengompres & Mengunggah Foto..." }
+                            totalFotoDiunggah++
 
-                            // 🚀 PANGGIL FUNGSI KOMPRESI DI SINI SEBELUM MENGIRIM!
+                            withContext(Dispatchers.Main) {
+                                btnSelanjutnya.text = "Mengunggah Foto ($totalFotoDiunggah dari $totalFoto)..."
+                            }
+
+                            kotlinx.coroutines.delay(800)
+
                             val compressedFile = compressImage(originalFile)
-
-                            // Gunakan compressedFile yang ukurannya sudah KB, bukan MB lagi
                             val reqFile = compressedFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
                             val body = MultipartBody.Part.createFormData("foto_jawaban", compressedFile.name, reqFile)
 
-                            // Tembak foto ke Server Node.js
                             val uploadRes = ApiClient.instance.uploadFotoJawaban(viewModel.participantId, body)
 
-                            // 🚀 PERBAIKAN: Jika gagal upload foto, lemparkan error agar masuk ke blok Catch!
                             if (uploadRes.isSuccessful) {
                                 finalFileUrl = uploadRes.body()?.url
+                                originalFile.delete()
+                                compressedFile.delete()
                             } else {
-                                throw Exception("Gagal mengunggah gambar. Backend menolak request.")
+                                throw Exception("Gagal mengunggah foto untuk soal nomor ${soalId}.")
                             }
                         }
                     }
-                    // Gabungkan teks dan Link foto (jika ada)
+
+                    // Simpan data teks + URL gambar (jika ada) ke array final
                     finalAnswers.add(AnswerItem(soalId, jawabanTeks, finalFileUrl))
                 }
 
-                // 3. Setelah semua foto terupload, kirim lembar jawaban finalnya!
-                withContext(Dispatchers.Main) { btnSelanjutnya.text = "Menyerahkan Ujian..." }
+                withContext(Dispatchers.Main) {
+                    btnSelanjutnya.text = "Menyerahkan Lembar Jawaban..."
+                }
+
+                kotlinx.coroutines.delay(1000)
+
                 val request = SubmitUjianRequest(finalAnswers)
                 val res = ApiClient.instance.submitJawaban(viewModel.participantId, request)
 
                 withContext(Dispatchers.Main) {
                     if (res.isSuccessful) {
-                        viewModel.getLocalDb()?.hapusSesi(viewModel.participantId) // Bersihkan SQLite
+                        viewModel.getLocalDb()?.hapusSesi(viewModel.participantId)
+
+                        btnSelanjutnya.text = "Ujian Selesai!"
+                        btnSelanjutnya.setBackgroundColor(android.graphics.Color.parseColor("#10B981"))
                         Toast.makeText(this@ExamActivity, "Lembar jawaban berhasil dikirim!", Toast.LENGTH_LONG).show()
-                        keluarModeAman()
+
+                        lifecycleScope.launch {
+                            kotlinx.coroutines.delay(1500)
+                            keluarModeAman()
+                        }
                     } else {
-                        Toast.makeText(this@ExamActivity, "Gagal terkirim. Data aman di HP.", Toast.LENGTH_LONG).show()
-                        btnSelanjutnya.isEnabled = true
-                        btnSelanjutnya.text = "Kumpulkan Ulang"
-                        btnSebelumnya.isEnabled = true
+                        throw Exception("Gagal mengirim jawaban final ke server.")
                     }
                 }
             } catch (e: Exception) {
-                // 🛡️ RECOVERY SYSTEM: Jika internet mati saat sedang mengunggah
                 withContext(Dispatchers.Main) {
                     tampilkanDialogInternetMati()
                     btnSelanjutnya.isEnabled = true
                     btnSelanjutnya.text = "Kumpulkan Ulang"
+                    btnSelanjutnya.setBackgroundColor(android.graphics.Color.parseColor("#0052FF"))
                     btnSebelumnya.isEnabled = true
                 }
             }
@@ -785,6 +815,7 @@ class ExamActivity : AppCompatActivity() {
         }
     }
 
+
     // 🚀 FUNGSI BARU: Kompresi Gambar di sisi Android (Client-Side Compression)
     private suspend fun compressImage(file: File): File = withContext(Dispatchers.IO) {
         try {
@@ -832,7 +863,7 @@ class ExamActivity : AppCompatActivity() {
             outputStream.close()
 
             // Hapus file asli yang ukurannya raksasa untuk menghemat memori internal HP siswa
-            file.delete()
+//            file.delete()
 
             return@withContext compressedFile
         } catch (e: Exception) {
@@ -842,6 +873,17 @@ class ExamActivity : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("TEMP_IMAGE_PATH", localImagePathTemp)
+        outState.putParcelable("TEMP_IMAGE_URI", photoUriTemp)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        localImagePathTemp = savedInstanceState.getString("TEMP_IMAGE_PATH")
+        photoUriTemp = savedInstanceState.getParcelable("TEMP_IMAGE_URI")
+    }
     // 🚀 FUNGSI ZOOM GAMBAR (Letakkan sebelum tanda '}' terakhir di file ini)
     private fun tampilkanZoomGambar(imageUrl: String) {
         val dialog = android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)

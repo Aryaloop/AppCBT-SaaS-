@@ -244,6 +244,18 @@ fun loadExamData(token: String, onError: (String) -> Unit) {
             sharedPrefs = context.getSharedPreferences("CBT_PREFS", android.content.Context.MODE_PRIVATE)
         }
     }
+
+    // Tambahkan di ExamViewModel.kt
+    fun autoSaveTeksKeServer(soalId: Int, jawaban: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.autoSave(participantId, AutoSaveRequest(soalId, jawaban))
+            } catch (e: Exception) {
+                // Biarkan gagal jika internet putus, SQLite sudah mengamankannya
+            }
+        }
+    }
+
     // 🚀 FUNGSI PINTU: Memberikan akses dbHelper ke Activity tanpa membuka akses private
     fun getLocalDb(): LocalDBHelper? {
         return dbHelper
