@@ -82,7 +82,8 @@ class ExamActivity : AppCompatActivity() {
     private lateinit var rbD: RadioButton
     private lateinit var btnSelanjutnya: Button
     private lateinit var btnSebelumnya: Button
-
+    // Tambahkan di bawah deklarasi variabel lainnya
+    private var isRenderingUI = false
     private val TAG = "ExamActivity"
 
     private lateinit var tvViolation: TextView // <--- TAMBAHKAN INI
@@ -316,6 +317,8 @@ class ExamActivity : AppCompatActivity() {
     private fun setupListeners() {
         // Logika RadioButton (Jawaban Siswa)
         rgOpsiJawaban.setOnCheckedChangeListener { _, checkedId ->
+            if (isRenderingUI) return@setOnCheckedChangeListener // 🚀 CEGAH SAVE OTOMATIS SAAT RENDER UI
+
             val list = viewModel.soalList.value
             val idx = viewModel.currentIndex.value
 
@@ -367,25 +370,24 @@ class ExamActivity : AppCompatActivity() {
                 ivPreviewJawaban.visibility = View.GONE
                 btnHapusGambarJawaban.visibility = View.GONE
 
-                // Update kembali status baris di SQLite menjadi tanpa gambar
                 viewModel.getLocalDb()?.simpanJawabanLengkap(viewModel.participantId, soalId, teksJawaban, null)
             }
         }
 
-        //  KECERDASAN FAULT TOLERANCE: Auto-save esai saat siswa sedang mengetik
+        // Auto-save esai saat siswa sedang mengetik
         etJawabanEssay.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
+                if (isRenderingUI) return // 🚀 CEGAH SAVE OTOMATIS SAAT PINDAH SOAL
+
                 val list = viewModel.soalList.value
                 val idx = viewModel.currentIndex.value
                 if (list.isNotEmpty() && idx in list.indices) {
                     val soalId = list[idx].id
                     val teksJawaban = s.toString()
 
-                    // Simpan ke runtime memori ViewModel
                     viewModel.jawabanSiswa[soalId] = teksJawaban
-                    // Amankan fisik datanya langsung ke SQLite lokal
                     viewModel.getLocalDb()?.simpanJawabanLengkap(viewModel.participantId, soalId, teksJawaban, localImagePathTemp)
                     viewModel.autoSaveTeksKeServer(soalId, teksJawaban)
                 }
@@ -461,37 +463,32 @@ class ExamActivity : AppCompatActivity() {
 
         if (list.isEmpty() || idx !in list.indices) return
 
+        isRenderingUI = true // 🚀 KUNCI LISTENER AGAR TIDAK SALAH TEMBAK
+
         val soal = list[idx]
 
         // Update Teks
         tvNomorSoal.text = "SOAL ${idx + 1} DARI ${list.size}"
         tvPertanyaan.text = soal.isi_soal
 
-        // 🚀 LOGIKA MENAMPILKAN GAMBAR
+        // LOGIKA MENAMPILKAN GAMBAR
         if (!soal.file_gambar.isNullOrEmpty()) {
             layoutGambarSoal.visibility = View.VISIBLE
-
-            // Muat gambar pakai Glide
             Glide.with(this@ExamActivity)
                 .load(soal.file_gambar)
                 .into(ivSoalGambar)
-
-            // Pasang sensor klik untuk Zoom
             ivSoalGambar.setOnClickListener {
                 tampilkanZoomGambar(soal.file_gambar)
             }
         } else {
-            // Sembunyikan jika soal tidak punya gambar
             layoutGambarSoal.visibility = View.GONE
         }
 
-        // Bersihkan centangan radio sementara (agar tidak salah trigger listener)
-        rgOpsiJawaban.setOnCheckedChangeListener(null)
-        rgOpsiJawaban.clearCheck()
+        // Bersihkan centangan radio sementara
+        rgOpsiJawaban.clearCheck() // 🚀 Hapus setOnCheckedChangeListener(null) yang lama
 
         // Render Opsi (PG atau Essay)
         if (soal.tipe_soal == "pilihan_ganda" || soal.tipe_soal == "PG") {
-            // 1. Tampilkan UI PG, Sembunyikan UI Essay
             rgOpsiJawaban.visibility = View.VISIBLE
             layoutEssay.visibility = View.GONE
 
@@ -501,68 +498,59 @@ class ExamActivity : AppCompatActivity() {
                 rbB.text = "B. ${opsi["B"] ?: ""}"
                 rbC.text = "C. ${opsi["C"] ?: ""}"
 
-                // Cek Opsi D
                 if (!opsi["D"].isNullOrEmpty()) {
                     rbD.visibility = View.VISIBLE
                     rbD.text = "D. ${opsi["D"]}"
                 } else {
-                    rbD.visibility = View.GONE // Sembunyikan opsi D jika memang tidak ada
+                    rbD.visibility = View.GONE
                 }
             }
 
-            // 2. Tandai jawaban jika sudah ada di memori/SQLite
             when (viewModel.jawabanSiswa[soal.id]) {
                 "A" -> rbA.isChecked = true
                 "B" -> rbB.isChecked = true
                 "C" -> rbC.isChecked = true
                 "D" -> rbD.isChecked = true
-                else -> rgOpsiJawaban.clearCheck() // 🚀 WAJIB ADA: Bersihkan jika belum dijawab
             }
 
         } else {
-            // ==========================================
-            // 🚀 RENDER UI SISI ESSAY (DENGAN RECOVERY PREVIEW FOTO)
-            // ==========================================
             rgOpsiJawaban.visibility = View.GONE
             layoutEssay.visibility = View.VISIBLE
 
-            // 1. Pulihkan Teks Jawaban Lama dari database lokal
-            val jawabanLama = viewModel.jawabanSiswa[soal.id] ?: ""
-            etJawabanEssay.setText(jawabanLama)
-
-            // 2. Pulihkan Preview Gambar Jawaban Lama dari database lokal
+            // 🚀 1. PULIHKAN GAMBAR DULU (Agar localImagePathTemp benar statusnya)
             val pathFotoLokal = viewModel.fotoSiswa[soal.id]
             if (!pathFotoLokal.isNullOrEmpty() && java.io.File(pathFotoLokal).exists()) {
                 localImagePathTemp = pathFotoLokal
                 ivPreviewJawaban.visibility = View.VISIBLE
                 btnHapusGambarJawaban.visibility = View.VISIBLE
-
-                Glide.with(this@ExamActivity)
-                    .load(pathFotoLokal)
-                    .into(ivPreviewJawaban)
+                Glide.with(this@ExamActivity).load(pathFotoLokal).into(ivPreviewJawaban)
             } else {
-                // Sembunyikan container preview jika data bersih dari lampiran
                 localImagePathTemp = null
                 ivPreviewJawaban.visibility = View.GONE
                 btnHapusGambarJawaban.visibility = View.GONE
             }
+
+            // 🚀 2. BARU PULIHKAN TEKS
+            val jawabanLama = viewModel.jawabanSiswa[soal.id] ?: ""
+            etJawabanEssay.setText(jawabanLama)
         }
 
-        // Nyalakan ulang listener
-        setupListeners()
+        // 🚀 HAPUS PERINTAH setupListeners() DARI SINI SEPENUHNYA
 
         // Update Status Tombol Bawah
         btnSebelumnya.isEnabled = idx > 0
 
         if (idx == list.size - 1) {
             btnSelanjutnya.text = "Kumpulkan"
-            btnSelanjutnya.setBackgroundColor(android.graphics.Color.parseColor("#10B981")) // Hijau
+            btnSelanjutnya.setBackgroundColor(android.graphics.Color.parseColor("#10B981"))
             btnSelanjutnya.isEnabled = true
         } else {
             btnSelanjutnya.text = "Selanjutnya"
-            btnSelanjutnya.setBackgroundColor(android.graphics.Color.parseColor("#0052FF")) // Biru
+            btnSelanjutnya.setBackgroundColor(android.graphics.Color.parseColor("#0052FF"))
             btnSelanjutnya.isEnabled = true
         }
+
+        isRenderingUI = false // 🚀 BUKA KEMBALI KUNCI LISTENER
     }
 
     // ==========================================
@@ -622,6 +610,9 @@ class ExamActivity : AppCompatActivity() {
                         if (originalFile.exists()) {
                             totalFotoDiunggah++
 
+                            // 🚀 1. LOG SAAT MENEMUKAN FOTO DI SQLITE
+                            Log.d("CBT_DEBUG", "📸 Menemukan foto untuk Soal ID $soalId. Path Asli: $localPath")
+
                             withContext(Dispatchers.Main) {
                                 btnSelanjutnya.text = "Mengunggah Foto ($totalFotoDiunggah dari $totalFoto)..."
                             }
@@ -629,6 +620,10 @@ class ExamActivity : AppCompatActivity() {
                             kotlinx.coroutines.delay(800)
 
                             val compressedFile = compressImage(originalFile)
+
+                            // 🚀 2. LOG SEBELUM MENGIRIM KE API
+                            Log.d("CBT_DEBUG", "🚀 Memulai upload foto Soal ID $soalId. Ukuran Kompresi: ${compressedFile.length() / 1024} KB")
+
                             val reqFile = compressedFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
                             val body = MultipartBody.Part.createFormData("foto_jawaban", compressedFile.name, reqFile)
 
@@ -636,14 +631,22 @@ class ExamActivity : AppCompatActivity() {
 
                             if (uploadRes.isSuccessful) {
                                 finalFileUrl = uploadRes.body()?.url
+
+                                // 🚀 3. LOG JIKA SERVER MENJAWAB SUKSES
+                                Log.d("CBT_DEBUG", "✅ SUKSES Upload Soal $soalId. URL Supabase: $finalFileUrl")
+
                                 originalFile.delete()
                                 compressedFile.delete()
                             } else {
+                                // 🚀 4. LOG JIKA BACKEND / SUPABASE MENOLAK
+                                val errorMsg = uploadRes.errorBody()?.string()
+                                Log.e("CBT_DEBUG", "❌ GAGAL Upload Soal $soalId. Pesan Server: $errorMsg")
                                 throw Exception("Gagal mengunggah foto untuk soal nomor ${soalId}.")
                             }
+                        } else {
+                            Log.e("CBT_DEBUG", "⚠️ File foto Soal ID $soalId tercatat di SQLite, tapi fisik file-nya TIDAK ADA di memori HP!")
                         }
                     }
-
                     // Simpan data teks + URL gambar (jika ada) ke array final
                     finalAnswers.add(AnswerItem(soalId, jawabanTeks, finalFileUrl))
                 }
@@ -783,6 +786,10 @@ class ExamActivity : AppCompatActivity() {
         }
 
         if (viewModel.participantId != -1) {
+            // ---> TAMBAHKAN DEBUG LOG DI SINI <---
+            // Deteksi jika aplikasi kehilangan fokus (indikasi curang screen pinning tertembus)
+            Log.w("CHEAT_DETECT", "Peringatan: onPause terpanggil! Siswa mencoba keluar dari ujian / split screen.")
+
             // INI KECURANGAN ASLI! Teks merah di layar akan bertambah dan tersimpan permanen
             viewModel.catatPelanggaran("APP_SWITCH", "Siswa meminimalkan aplikasi atau membuka notifikasi/split screen.")
             Toast.makeText(this, "Aktivitas mencurigakan terekam CCTV Sistem!", Toast.LENGTH_LONG).show()
